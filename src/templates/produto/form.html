@@ -417,9 +417,17 @@
 
     function atualizarPrevisaoSKU(combinacoes, prefixo) {
         $("#combinacoes-table tbody").empty();
-        if (combinacoes.length === 0) {
-             $("#combinacoes-table tbody").append('<tr><td colspan="2" class="text-muted text-center">Nenhuma combinação a ser gerada.</td></tr>');
-             return;
+        
+        if (combinacoes.length === 0 || (combinacoes.length === 1 && combinacoes[0].length === 0)) {
+            // Caso seja uma variação única (combinação vazia)
+            const skuCompleto = prefixo || "PRODUTO";
+            $("#combinacoes-table tbody").append(`
+                <tr>
+                    <td><em>Variação única (sem atributos)</em></td>
+                    <td>${skuCompleto}</td>
+                </tr>
+            `);
+            return;
         }
         combinacoes.forEach(function(combinacao) {
             const descricao = combinacao.map(item => `${item.atributoNome}: ${item.valor}`).join(", ");
@@ -568,11 +576,19 @@
                 }
             });
 
+            // --- Nova Lógica: Variação Única se nenhum atributo selecionado ---
             if (atributosSelecionados.length === 0) {
-                alert("Selecione pelo menos um atributo com valores para gerar combinações.");
+                if (confirm("Nenhum atributo selecionado. Deseja criar uma variação única para este produto?")) {
+                    // Cria uma combinação vazia (variação única)
+                    combinacoesParaGerar = [[]];
+                    const prefixo = $("#prefixo-sku").val() || "PROD"; // Usa o prefixo ou um padrão
+                    atualizarPrevisaoSKU(combinacoesParaGerar, prefixo);
+                    $("#modal-gerar-variacoes").modal("show");
+                }
                 return;
             }
             
+            // Se houver atributos, prossegue normalmente
             combinacoesParaGerar = gerarCombinacoes(atributosSelecionados);
             atualizarPrevisaoSKU(combinacoesParaGerar, $("#prefixo-sku").val());
             $("#modal-gerar-variacoes").modal("show");

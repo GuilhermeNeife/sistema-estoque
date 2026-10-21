@@ -10,14 +10,14 @@ produto_variacao_atributo_valor = db.Table('produto_variacao_atributo_valor',
 class Produto(db.Model):
     __tablename__ = 'produto'
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True) # Corrigido: Indentação removida
     nome = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.Text, nullable=True)
-    sku_base = db.Column(db.String(50), nullable=True, unique=True)
-    isbn = db.Column(db.String(20), nullable=True)
+    sku_base = db.Column(db.String(50), nullable=True, unique=True) # Adicionado SKU Base
+    isbn = db.Column(db.String(20), nullable=True) # Adicionado ISBN
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)
     fornecedor_id = db.Column(db.Integer, db.ForeignKey('cliente_fornecedor.id'), nullable=True)
-    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow) # Corrigido: Removido 'mentos' 
     variacoes = db.relationship('ProdutoVariacao', backref='produto', lazy=True, cascade="all, delete-orphan")
     
     def __repr__(self):
@@ -33,43 +33,6 @@ class Produto(db.Model):
     def estoque_total(self):
         """Calcula o estoque total somando todas as variações"""
         return sum(variacao.quantidade_atual for variacao in self.variacoes)
-    
-    def tem_variacao_padrao(self):
-        """Verifica se o produto já tem uma variação padrão"""
-        for variacao in self.variacoes:
-            if variacao.eh_padrao:
-                return True
-        return False
-    
-    def get_variacao_padrao(self):
-        """Retorna a variação padrão do produto, se existir"""
-        for variacao in self.variacoes:
-            if variacao.eh_padrao:
-                return variacao
-        return None
-    
-    def criar_variacao_padrao(self, preco_venda=0, estoque_minimo=5):
-        """Cria uma variação padrão para o produto sem variações"""
-        if self.tem_variacao_padrao():
-            return self.get_variacao_padrao()
-        
-        # Gerar SKU para variação padrão
-        sku = f"{self.sku_base or f'PROD{self.id}'}-PADRAO"
-        
-        # Criar variação padrão
-        variacao = ProdutoVariacao(
-            produto_id=self.id,
-            nome=self.nome,
-            sku=sku,
-            preco_venda=preco_venda,
-            estoque_minimo=estoque_minimo,
-            eh_padrao=True
-        )
-        
-        db.session.add(variacao)
-        db.session.commit()
-        
-        return variacao
 
 class ProdutoVariacao(db.Model):
     __tablename__ = 'produto_variacao'
@@ -81,7 +44,6 @@ class ProdutoVariacao(db.Model):
     preco_venda = db.Column(db.Float, nullable=False)
     quantidade_atual = db.Column(db.Integer, default=0)
     estoque_minimo = db.Column(db.Integer, default=5)
-    eh_padrao = db.Column(db.Boolean, default=False)  # Novo campo para identificar variação padrão
     
     # Relacionamentos
     atributos_valores = db.relationship('AtributoValor', secondary=produto_variacao_atributo_valor, 
@@ -118,3 +80,4 @@ class AtributoValor(db.Model):
     
     def __repr__(self):
         return f'<AtributoValor {self.valor}>'
+

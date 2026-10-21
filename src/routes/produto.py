@@ -20,6 +20,7 @@ def listar():
 class ProdutoForm(FlaskForm):
     id = HiddenField("ID")
     nome = StringField("Nome", validators=[DataRequired(), Length(min=3, max=100)])
+
     sku_base = StringField("SKU Base", validators=[Optional(), Length(max=50)]) # Adicionado SKU Base
     isbn = StringField("ISBN", validators=[Optional(), Length(max=20)]) # Adicionado ISBN
     descricao = TextAreaField("Descrição")
@@ -211,13 +212,14 @@ def gerar_variacoes(id):
 
         for combinacao in combinacoes:
             # Criar nome da variação
-            nome_variacao = produto.nome + " - " + ", ".join([f"{combinacao[i]['atributoNome']}: {combinacao[i]['valor']}" for i in range(len(combinacao))])
+            nome_variacao = produto.nome + (" - " + ", ".join([f"{item['atributoNome']}: {item['valor']}" for item in combinacao])if combinacao else "")
+
             
             # Criar SKU (usando prefixo + valores)
             # Ordenar valores por atributo_id para garantir consistência do SKU
             combinacao_ordenada = sorted(combinacao, key=lambda x: x["atributoId"])
             sufixo_sku = "-".join([item["valor"].replace(" ", "").upper() for item in combinacao_ordenada])
-            sku = f"{prefixo_sku}-{sufixo_sku}"
+            sku = f"{prefixo_sku}-{sufixo_sku}" if sufixo_sku else prefixo_sku
             
             # Verificar se já existe variação com este SKU para este produto
             variacao_existente = ProdutoVariacao.query.filter_by(produto_id=produto.id, sku=sku).first()

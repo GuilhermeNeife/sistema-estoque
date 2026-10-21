@@ -51,28 +51,12 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="{{ form.produto_id.id }}" class="required-field">Produto</label>
+                            <label for="{{ form.variacao_id.id }}" class="required-field">Produto/Variação</label>
                             <div class="input-group mb-2">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <div class="input-group-prepend">                       
                                 </div>
-                                <input type="text" id="produto-busca" class="form-control" placeholder="Buscar produto por nome ou SKU...">
                             </div>
-                            {{ form.produto_id(class="form-control produto-select" + (" is-invalid" if form.produto_id.errors else "")) }}
-                            {% if form.produto_id.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.produto_id.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">Apenas produtos com estoque disponível são mostrados</small>
-                        </div>
-                    </div>
-                    <div class="col-md-6" id="variacao-container">
-                        <div class="form-group">
-                            <label for="{{ form.variacao_id.id }}">Variação</label>
-                            {{ form.variacao_id(class="form-control variacao-select" + (" is-invalid" if form.variacao_id.errors else "")) }}
+                            {{ form.variacao_id(class="form-control produto-select" + (" is-invalid" if form.variacao_id.errors else "")) }}
                             {% if form.variacao_id.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.variacao_id.errors %}
@@ -80,19 +64,15 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                            <small class="form-text text-muted">Apenas produtos com estoque disponível são mostrados</small>
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.cliente_id.id }}">Cliente</label>
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
-                                <input type="text" id="cliente-busca" class="form-control" placeholder="Buscar cliente...">
                             </div>
                             {{ form.cliente_id(class="form-control cliente-select" + (" is-invalid" if form.cliente_id.errors else "")) }}
                             {% if form.cliente_id.errors %}
@@ -104,7 +84,10 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-md-6">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
                             {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
@@ -118,10 +101,7 @@
                             <small class="form-text text-muted" id="estoque-disponivel"></small>
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="{{ form.preco_venda.id }}" class="required-field">Preço de Venda</label>
                             <div class="input-group">
@@ -139,7 +119,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="{{ form.data.id }}" class="required-field">Data</label>
                             {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
@@ -152,7 +132,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="{{ form.motivo.id }}">Motivo</label>
                             {{ form.motivo(class="form-control" + (" is-invalid" if form.motivo.errors else "")) }}
@@ -201,21 +181,6 @@
             language: {
                 noResults: function() {
                     return "Nenhum produto encontrado";
-                },
-                searching: function() {
-                    return "Buscando...";
-                }
-            }
-        });
-        
-        // Inicializar Select2 para variações
-        $('.variacao-select').select2({
-            placeholder: 'Selecione uma variação',
-            allowClear: true,
-            width: '100%',
-            language: {
-                noResults: function() {
-                    return "Nenhuma variação encontrada";
                 },
                 searching: function() {
                     return "Buscando...";
@@ -288,78 +253,29 @@
             }
         });
         
-        // Carregar variações ao selecionar produto
-        $('#saida_estoque_form-produto_id').change(function() {
-            const produtoId = $(this).val();
-            
-            if (produtoId && produtoId != '0') {
-                // Limpar e desabilitar o select de variações enquanto carrega
-                $('#saida_estoque_form-variacao_id').empty().prop('disabled', true);
-                $('#estoque-disponivel').html('');
-                
-                // Buscar variações do produto
-                $.ajax({
-                    url: '/estoque/produto/' + produtoId + '/variacoes?tipo=saida',
-                    method: 'GET',
-                    success: function(variacoes) {
-                        // Se não houver variações ou apenas uma variação padrão, ocultar o campo
-                        if (variacoes.length === 0) {
-                            $('#variacao-container').hide();
-                            $('#estoque-disponivel').html('Produto sem estoque disponível');
-                            $('#saida_estoque_form-quantidade').attr('max', 0);
-                            $('#saida_estoque_form-preco_venda').val('0.00');
-                        } else if (variacoes.length === 1 && variacoes[0].eh_padrao) {
-                            $('#variacao-container').hide();
-                            
-                            // Selecionar automaticamente a variação padrão
-                            $('#saida_estoque_form-variacao_id').append(new Option(variacoes[0].nome, variacoes[0].id, true, true));
-                            
-                            // Atualizar informações de estoque
-                            $('#estoque-disponivel').html(`Estoque disponível: <strong>${variacoes[0].quantidade_atual}</strong>`);
-                            $('#saida_estoque_form-quantidade').attr('max', variacoes[0].quantidade_atual);
-                            $('#saida_estoque_form-preco_venda').val(variacoes[0].preco_venda.toFixed(2));
-                        } else {
-                            // Mostrar o campo de variação e adicionar opções
-                            $('#variacao-container').show();
-                            
-                            // Adicionar opção padrão
-                            $('#saida_estoque_form-variacao_id').append(new Option('-- Selecione --', 0, true, true));
-                            
-                            // Adicionar variações
-                            variacoes.forEach(function(variacao) {
-                                const texto = variacao.nome + ' (' + variacao.sku + ') - Estoque: ' + variacao.quantidade_atual;
-                                $('#saida_estoque_form-variacao_id').append(new Option(texto, variacao.id));
-                            });
-                        }
-                        
-                        // Habilitar o select e atualizar o Select2
-                        $('#saida_estoque_form-variacao_id').prop('disabled', false).trigger('change');
-                    },
-                    error: function() {
-                        alert('Erro ao carregar variações do produto');
-                        $('#saida_estoque_form-variacao_id').prop('disabled', false);
-                    }
-                });
-            } else {
-                // Limpar e desabilitar o select de variações
-                $('#saida_estoque_form-variacao_id').empty().append(new Option('-- Selecione --', 0, true, true)).prop('disabled', true).trigger('change');
-                $('#variacao-container').show();
-                $('#estoque-disponivel').html('');
-                $('#saida_estoque_form-preco_venda').val('');
-            }
-        });
+        // Atualizar data atual
+        if (!$('#saida_estoque_form-data').val()) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            $('#saida_estoque_form-data').val(`${year}-${month}-${day}`);
+        }
         
-        // Atualizar informações de estoque ao selecionar variação
+        // Atualizar informações de estoque disponível ao selecionar produto
         $('#saida_estoque_form-variacao_id').change(function() {
             const variacaoId = $(this).val();
-            
             if (variacaoId && variacaoId != '0') {
                 $.ajax({
-                    url: '/estoque/variacao/' + variacaoId + '/info',
+                    url: '{{ url_for("estoque.get_variacao_info", id=0) }}'.replace('0', variacaoId),
                     method: 'GET',
                     success: function(response) {
                         $('#estoque-disponivel').html(`Estoque disponível: <strong>${response.quantidade_atual}</strong>`);
+                        
+                        // Atualizar limite máximo do campo quantidade
                         $('#saida_estoque_form-quantidade').attr('max', response.quantidade_atual);
+                        
+                        // Preencher preço de venda com o valor do produto
                         $('#saida_estoque_form-preco_venda').val(response.preco_venda.toFixed(2));
                     }
                 });
@@ -382,21 +298,12 @@
             }
         });
         
-        // Atualizar data atual
-        if (!$('#saida_estoque_form-data').val()) {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            $('#saida_estoque_form-data').val(`${year}-${month}-${day}`);
-        }
-        
         // Validar quantidade ao submeter o formulário
         $('form').submit(function(e) {
             const quantidade = parseInt($('#saida_estoque_form-quantidade').val());
             const max = parseInt($('#saida_estoque_form-quantidade').attr('max'));
             
-            if (max && quantidade > max) {
+            if (quantidade > max) {
                 e.preventDefault();
                 alert(`Quantidade excede o estoque disponível (${max})!`);
                 return false;

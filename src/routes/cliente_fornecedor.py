@@ -110,7 +110,7 @@ def novo():
             db.session.add(fornecedor)
             db.session.commit()
             flash('Fornecedor cadastrado com sucesso!', 'success')
-            return redirect(url_for('cliente_fornecedor.editar', id=fornecedor.id, aba='fornecedor'))
+            return redirect(url_for('cliente_fornecedor.listar'))
     
     return render_template('cliente_fornecedor/form.html', 
                           cliente_form=cliente_form,
