@@ -165,8 +165,8 @@ def excluir(id):
     cliente_fornecedor = ClienteFornecedor.query.get_or_404(id)
     
     # Verificar se há produtos vinculados (se for fornecedor)
-    if cliente_fornecedor.eh_fornecedor and cliente_fornecedor.produtos:
-        flash(f'Não é possível excluir. Existem {len(cliente_fornecedor.produtos)} produtos vinculados a este fornecedor.', 'danger')
+    if cliente_fornecedor.eh_fornecedor and cliente_fornecedor.produtos_fornecidos:
+        flash(f'Não é possível excluir. Existem {len(cliente_fornecedor.produtos_fornecidos)} produtos vinculados a este fornecedor.', 'danger')
         return redirect(url_for('cliente_fornecedor.listar'))
     
     # Excluir responsáveis vinculados
