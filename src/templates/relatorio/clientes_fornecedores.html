@@ -19,6 +19,10 @@
     .filter-card {
         border-top: 3px solid #17a2b8;
     }
+    
+    .btn-ver-historico {
+        white-space: nowrap;
+    }
 </style>
 {% endblock %}
 
@@ -72,6 +76,7 @@
                                 <th>Telefone</th>
                                 <th>Endereço</th>
                                 <th>Movimentações</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -83,6 +88,11 @@
                                     <td>{{ cliente.telefone }}</td>
                                     <td>{{ cliente.endereco or '-' }}</td>
                                     <td>{{ cliente.total_saidas }}</td>
+                                    <td>
+                                        <a href="{{ url_for('relatorio.cliente_fornecedor_movimentacoes', id=cliente.id) }}" class="btn btn-sm btn-primary btn-ver-historico">
+                                            <i class="fas fa-history mr-1"></i>Ver Histórico
+                                        </a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -138,6 +148,7 @@
                                 <th>Telefone</th>
                                 <th>Responsáveis</th>
                                 <th>Movimentações</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -150,6 +161,11 @@
                                     <td>{{ fornecedor.telefone }}</td>
                                     <td>{{ fornecedor.total_responsaveis }}</td>
                                     <td>{{ fornecedor.total_entradas }}</td>
+                                    <td>
+                                        <a href="{{ url_for('relatorio.cliente_fornecedor_movimentacoes', id=fornecedor.id) }}" class="btn btn-sm btn-success btn-ver-historico">
+                                            <i class="fas fa-history mr-1"></i>Ver Histórico
+                                        </a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>

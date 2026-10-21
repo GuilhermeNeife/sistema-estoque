@@ -39,6 +39,7 @@
 
 {% block content %}
 <div class="container">
+    <div class="jumbotron mt-4">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -49,9 +50,10 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <a href="{{ url_for("produto.novo_atributo") }}" class="btn btn-primary">
+            <a href="{{ url_for('produto.novo_atributo') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle mr-1"></i>Novo Atributo
             </a>
+
         </div>
     </div>
 
@@ -146,6 +148,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 {% endblock %}

@@ -110,6 +110,63 @@ def clientes_fornecedores():
                           clientes=clientes,
                           fornecedores=fornecedores)
 
+@relatorio_bp.route('/cliente-fornecedor/<int:id>/movimentacoes', methods=['GET', 'POST'])
+def cliente_fornecedor_movimentacoes(id):
+    # Buscar a entidade (cliente ou fornecedor)
+    entidade = ClienteFornecedor.query.get_or_404(id)
+    
+    # Definir período padrão (último mês)
+    data_fim = datetime.now()
+    data_inicio = data_fim - timedelta(days=30)
+    
+    # Processar filtros
+    if request.method == 'POST':
+        data_inicio = datetime.strptime(request.form.get('data_inicio'), '%Y-%m-%d')
+        data_fim = datetime.strptime(request.form.get('data_fim'), '%Y-%m-%d')
+        # Ajustar data_fim para incluir todo o dia
+        data_fim = data_fim.replace(hour=23, minute=59, second=59)
+    
+    # Inicializar variáveis
+    entradas = []
+    saidas = []
+    total_entradas = 0
+    total_saidas = 0
+    valor_total_entradas = 0
+    valor_total_saidas = 0
+    
+    # Se for fornecedor, buscar entradas
+    if entidade.eh_fornecedor:
+        entradas = EntradaEstoque.query.filter(
+            EntradaEstoque.fornecedor_id == entidade.id,
+            EntradaEstoque.data >= data_inicio,
+            EntradaEstoque.data <= data_fim
+        ).order_by(EntradaEstoque.data.desc()).all()
+        
+        total_entradas = sum(entrada.quantidade for entrada in entradas)
+        valor_total_entradas = sum(entrada.quantidade * entrada.preco_custo for entrada in entradas)
+    
+    # Se for cliente, buscar saídas
+    if entidade.eh_cliente:
+        saidas = SaidaEstoque.query.filter(
+            SaidaEstoque.cliente_id == entidade.id,
+            SaidaEstoque.data >= data_inicio,
+            SaidaEstoque.data <= data_fim
+        ).order_by(SaidaEstoque.data.desc()).all()
+        
+        total_saidas = sum(saida.quantidade for saida in saidas)
+        valor_total_saidas = sum(saida.quantidade * saida.preco_venda for saida in saidas)
+    
+    return render_template('relatorio/cliente_fornecedor_movimentacoes.html',
+                          entidade=entidade,
+                          entradas=entradas,
+                          saidas=saidas,
+                          data_inicio=data_inicio,
+                          data_fim=data_fim,
+                          total_entradas=total_entradas,
+                          total_saidas=total_saidas,
+                          valor_total_entradas=valor_total_entradas,
+                          valor_total_saidas=valor_total_saidas)
+
 @relatorio_bp.route('/api/dados-estoque')
 def api_dados_estoque():
     # Buscar produtos com mais saídas nos últimos 30 dias
