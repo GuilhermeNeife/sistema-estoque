@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Entrada de Estoque - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ titulo }}</h2>
+        <a href="{{ url_for('estoque.entradas') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Formulário de Entrada</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.csrf_token }}
+                {{ form.id }}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.variacao_id.id }}" class="required-field">Produto/Variação</label>
+                            {{ form.variacao_id(class="form-control" + (" is-invalid" if form.variacao_id.errors else "")) }}
+                            {% if form.variacao_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.variacao_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.fornecedor_id.id }}">Fornecedor</label>
+                            {{ form.fornecedor_id(class="form-control" + (" is-invalid" if form.fornecedor_id.errors else "")) }}
+                            {% if form.fornecedor_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.fornecedor_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
+                            {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
+                            {% if form.quantidade.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.quantidade.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.preco_custo.id }}" class="required-field">Preço de Custo</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">R$</span>
+                                </div>
+                                {{ form.preco_custo(class="form-control" + (" is-invalid" if form.preco_custo.errors else ""), min="0", step="0.01") }}
+                                {% if form.preco_custo.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preco_custo.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.data.id }}" class="required-field">Data</label>
+                            {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
+                            {% if form.data.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.data.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.nota_fiscal.id }}">Nota Fiscal</label>
+                            {{ form.nota_fiscal(class="form-control" + (" is-invalid" if form.nota_fiscal.errors else "")) }}
+                            {% if form.nota_fiscal.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.nota_fiscal.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.observacao.id }}">Observação</label>
+                            {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
+                            {% if form.observacao.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.observacao.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-success") }}
+                    <a href="{{ url_for('estoque.entradas') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Formatar preço de custo
+        $('#entrada_estoque_form-preco_custo').on('input', function() {
+            let value = $(this).val();
+            if (value) {
+                // Garantir que seja um número com no máximo 2 casas decimais
+                value = parseFloat(value).toFixed(2);
+                if (!isNaN(value)) {
+                    $(this).val(value);
+                }
+            }
+        });
+        
+        // Atualizar data atual
+        if (!$('#entrada_estoque_form-data').val()) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            $('#entrada_estoque_form-data').val(`${year}-${month}-${day}`);
+        }
+    });
+</script>
+{% endblock %}

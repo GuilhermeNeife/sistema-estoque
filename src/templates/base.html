@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Estoque PimentaMix{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home.index') }}">
+                <i class="fas fa-pepper-hot mr-2"></i>PimentaMix
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home.index') }}">
+                            <i class="fas fa-home mr-1"></i>Início
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="produtosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-box mr-1"></i>Produtos
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="produtosDropdown">
+                            <a class="dropdown-item" href="{{ url_for('produto.listar') }}">Listar Produtos</a>
+                            <a class="dropdown-item" href="{{ url_for('produto.novo') }}">Novo Produto</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('produto.listar_categorias') }}">Categorias</a>
+                            <a class="dropdown-item" href="{{ url_for('produto.listar_atributos') }}">Atributos</a>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('cliente_fornecedor.listar') }}">
+                            <i class="fas fa-users mr-1"></i>Clientes/Fornecedores
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="estoqueDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-warehouse mr-1"></i>Estoque
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="estoqueDropdown">
+                            <a class="dropdown-item" href="{{ url_for('estoque.index') }}">Painel de Estoque</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('estoque.entradas') }}">Entradas</a>
+                            <a class="dropdown-item" href="{{ url_for('estoque.saidas') }}">Saídas</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('estoque.nova_entrada') }}">Nova Entrada</a>
+                            <a class="dropdown-item" href="{{ url_for('estoque.nova_saida') }}">Nova Saída</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="relatoriosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-chart-bar mr-1"></i>Relatórios
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="relatoriosDropdown">
+                            <a class="dropdown-item" href="{{ url_for('relatorio.index') }}">Painel de Relatórios</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('relatorio.estoque_atual') }}">Estoque Atual</a>
+                            <a class="dropdown-item" href="{{ url_for('relatorio.estoque_baixo') }}">Estoque Baixo</a>
+                            <a class="dropdown-item" href="{{ url_for('relatorio.movimentacoes') }}">Movimentações</a>
+                            <a class="dropdown-item" href="{{ url_for('relatorio.clientes_fornecedores') }}">Clientes e Fornecedores</a>
+                        </div>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    <i class="fas fa-user-circle mr-1"></i>Usuário: Admin
+                </span>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main Content -->
+    <main class="py-4">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Estoque PimentaMix</h5>
+                    <p>Sistema de controle de estoque, clientes, fornecedores e produtos.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('home.index') }}" class="text-white">Início</a></li>
+                        <li><a href="{{ url_for('produto.listar') }}" class="text-white">Produtos</a></li>
+                        <li><a href="{{ url_for('cliente_fornecedor.listar') }}" class="text-white">Clientes/Fornecedores</a></li>
+                        <li><a href="{{ url_for('estoque.index') }}" class="text-white">Estoque</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Contato</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope mr-2"></i>contato@pimentamix.com.br</li>
+                        <li><i class="fas fa-phone mr-2"></i>(11) 99999-9999</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i>São Paulo, SP</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; {{ current_year }} Estoque PimentaMix. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        $(document).ready(function() {
+            // Highlight active nav item
+            $('a.nav-link').each(function() {
+                if ($(this).attr('href') === window.location.pathname) {
+                    $(this).addClass('active');
+                    if ($(this).hasClass('dropdown-toggle')) {
+                        $(this).parent().addClass('active');
+                    }
+                }
+            });
+            
+            // Auto-dismiss flash messages after 5 seconds
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

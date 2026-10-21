@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Valores de Atributos - Sistema de Controle de Estoque{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-list-alt mr-2"></i>Valores de Atributos
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <a href="{{ url_for('produto.novo_valor') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle mr-1"></i>Novo Valor
+        </a>
+        <a href="{{ url_for('produto.listar_atributos') }}" class="btn btn-secondary">
+            <i class="fas fa-tags mr-1"></i>Gerenciar Atributos
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list mr-2"></i>Lista de Valores de Atributos
+            </div>
+            <div class="card-body">
+                {% if valores %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Atributo</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for valor in valores %}
+                            <tr>
+                                <td>{{ valor.atributo.nome }}</td>
+                                <td>{{ valor.valor }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ valor.id }}">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                    
+                                    <!-- Modal de confirmação de exclusão -->
+                                    <div class="modal fade" id="deleteModal{{ valor.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ valor.id }}" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ valor.id }}">Confirmar Exclusão</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Tem certeza que deseja excluir o valor <strong>{{ valor.valor }}</strong> do atributo <strong>{{ valor.atributo.nome }}</strong>?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                    <form action="{{ url_for('produto.excluir_valor', id=valor.id) }}" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Nenhum valor de atributo cadastrado. <a href="{{ url_for('produto.novo_valor') }}">Cadastre um novo valor</a>.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

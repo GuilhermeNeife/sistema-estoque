@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Saída de Estoque - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ titulo }}</h2>
+        <a href="{{ url_for('estoque.saidas') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Formulário de Saída</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.csrf_token }}
+                {{ form.id }}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.variacao_id.id }}" class="required-field">Produto/Variação</label>
+                            {{ form.variacao_id(class="form-control" + (" is-invalid" if form.variacao_id.errors else "")) }}
+                            {% if form.variacao_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.variacao_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Apenas produtos com estoque disponível são mostrados</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.cliente_id.id }}">Cliente</label>
+                            {{ form.cliente_id(class="form-control" + (" is-invalid" if form.cliente_id.errors else "")) }}
+                            {% if form.cliente_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cliente_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
+                            {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
+                            {% if form.quantidade.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.quantidade.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted" id="estoque-disponivel"></small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.data.id }}" class="required-field">Data</label>
+                            {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
+                            {% if form.data.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.data.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.motivo.id }}">Motivo</label>
+                            {{ form.motivo(class="form-control" + (" is-invalid" if form.motivo.errors else "")) }}
+                            {% if form.motivo.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.motivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.observacao.id }}">Observação</label>
+                    {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
+                    {% if form.observacao.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.observacao.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-danger") }}
+                    <a href="{{ url_for('estoque.saidas') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Atualizar data atual
+        if (!$('#saida_estoque_form-data').val()) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            $('#saida_estoque_form-data').val(`${year}-${month}-${day}`);
+        }
+        
+        // Atualizar informações de estoque disponível ao selecionar produto
+        $('#saida_estoque_form-variacao_id').change(function() {
+            const variacaoId = $(this).val();
+            if (variacaoId && variacaoId != '0') {
+                $.ajax({
+                    url: '{{ url_for("estoque.get_variacao_info", id=0) }}'.replace('0', variacaoId),
+                    method: 'GET',
+                    success: function(response) {
+                        $('#estoque-disponivel').html(`Estoque disponível: <strong>${response.quantidade_atual}</strong>`);
+                        
+                        // Atualizar limite máximo do campo quantidade
+                        $('#saida_estoque_form-quantidade').attr('max', response.quantidade_atual);
+                    }
+                });
+            } else {
+                $('#estoque-disponivel').html('');
+                $('#saida_estoque_form-quantidade').removeAttr('max');
+            }
+        });
+        
+        // Validar quantidade ao submeter o formulário
+        $('form').submit(function(e) {
+            const quantidade = parseInt($('#saida_estoque_form-quantidade').val());
+            const max = parseInt($('#saida_estoque_form-quantidade').attr('max'));
+            
+            if (quantidade > max) {
+                e.preventDefault();
+                alert(`Quantidade excede o estoque disponível (${max})!`);
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

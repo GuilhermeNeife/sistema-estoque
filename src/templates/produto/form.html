@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap4-theme@1.0.0/dist/select2-bootstrap4.min.css">
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+    
+    .tab-content {
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+    }
+    
+    .nav-tabs .nav-link {
+        font-weight: 500;
+    }
+    
+    .variacoes-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .atributo-valor-badge {
+        display: inline-block;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+        line-height: inherit;
+    }
+    .select2-container .select2-selection--single {
+        height: calc(1.5em + .75rem + 2px);
+    }
+    .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + .75rem + 2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ titulo }}</h2>
+        <a href="{{ url_for("produto.listar") }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Cadastro de Produto</h5>
+        </div>
+        <div class="card-body">
+            <!-- Abas -->
+            <ul class="nav nav-tabs" id="produtoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="produto-tab" data-toggle="tab" href="#produto" role="tab" aria-controls="produto" aria-selected="true">
+                        <i class="fas fa-box mr-1"></i>Produto Base
+                    </a>
+                </li>
+                {% if produto is defined and produto %}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="variacoes-tab" data-toggle="tab" href="#variacoes" role="tab" aria-controls="variacoes" aria-selected="false">
+                        <i class="fas fa-tags mr-1"></i>Variações (SKUs)
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <!-- Conteúdo das Abas -->
+            <div class="tab-content" id="produtoTabsContent">
+                <!-- Aba Produto Base -->
+                <div class="tab-pane fade show active" id="produto" role="tabpanel" aria-labelledby="produto-tab">
+                    <form method="POST" id="produto-form">
+                        {{ form.csrf_token }}
+                        {{ form.id }}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="{{ form.nome.id }}" class="required-field">Nome do Produto</label>
+                                    {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
+                                    {% if form.nome.errors %}
+                                        <div class="invalid-feedback">{{ form.nome.errors|join(", ") }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.sku_base.id }}">SKU Base</label>
+                                    {{ form.sku_base(class="form-control" + (" is-invalid" if form.sku_base.errors else ""), placeholder="Opcional. Usado como prefixo para SKUs de variações") }}
+                                    {% if form.sku_base.errors %}
+                                        <div class="invalid-feedback">{{ form.sku_base.errors|join(", ") }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.descricao.id }}">Descrição</label>
+                            {{ form.descricao(class="form-control" + (" is-invalid" if form.descricao.errors else ""), rows=3) }}
+                            {% if form.descricao.errors %}
+                                <div class="invalid-feedback">{{ form.descricao.errors|join(", ") }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.categoria_id.id }}" class="required-field">Categoria</label>
+                                    <div class="input-group">
+                                        {{ form.categoria_id(class="form-control select2-field" + (" is-invalid" if form.categoria_id.errors else "")) }}
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-nova-categoria" title="Nova Categoria">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% if form.categoria_id.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.categoria_id.errors|join(", ") }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.fornecedor_id.id }}">Fornecedor Principal</label>
+                                     <div class="input-group">
+                                        {{ form.fornecedor_id(class="form-control select2-field" + (" is-invalid" if form.fornecedor_id.errors else "")) }}
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-novo-fornecedor" title="Novo Fornecedor">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% if form.fornecedor_id.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.fornecedor_id.errors|join(", ") }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                             <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.isbn.id }}">ISBN</label>
+                                    {{ form.isbn(class="form-control" + (" is-invalid" if form.isbn.errors else ""), placeholder="Opcional") }}
+                                    {% if form.isbn.errors %}
+                                        <div class="invalid-feedback">{{ form.isbn.errors|join(", ") }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for("produto.listar") }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Aba Variações (apenas para edição) -->
+                {% if produto is defined and produto %}
+                <div class="tab-pane fade" id="variacoes" role="tabpanel" aria-labelledby="variacoes-tab">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Crie variações (SKUs) para este produto selecionando os atributos e valores desejados.
+                        Cada combinação de atributos gerará uma variação com SKU próprio.
+                        O preço e estoque serão gerenciados posteriormente nas entradas e saídas de estoque.
+                    </div>
+                    
+                    <!-- Seleção de Atributos -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Gerador de Variações</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="atributos-form">
+                                <label>Selecione os Atributos e Valores para gerar as combinações:</label>
+                                <div class="row">
+                                    {% for atributo in atributos %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input atributo-checkbox" 
+                                                           id="atributo-{{ atributo.id }}" value="{{ atributo.id }}"
+                                                           data-nome="{{ atributo.nome }}">
+                                                    <label class="custom-control-label font-weight-bold" for="atributo-{{ atributo.id }}">
+                                                        {{ atributo.nome }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="card-body" style="max-height: 150px; overflow-y: auto;">
+                                                {% for valor in atributo.valores %}
+                                                <div class="custom-control custom-checkbox ml-2">
+                                                    <input type="checkbox" class="custom-control-input valor-checkbox" 
+                                                           id="valor-{{ valor.id }}" value="{{ valor.id }}"
+                                                           data-atributo-id="{{ atributo.id }}"
+                                                           data-atributo-nome="{{ atributo.nome }}"
+                                                           data-valor="{{ valor.valor }}">
+                                                    <label class="custom-control-label" for="valor-{{ valor.id }}">
+                                                        {{ valor.valor }}
+                                                    </label>
+                                                </div>
+                                                {% else %}
+                                                <small class="text-muted ml-2">Nenhum valor cadastrado.</small>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="card-footer bg-transparent border-top-0 text-right">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary btn-novo-valor-atributo"
+                                                        data-atributo-id="{{ atributo.id }}" data-atributo-nome="{{ atributo.nome }}">
+                                                    <i class="fas fa-plus-circle"></i> Novo Valor
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="col-12">
+                                        <p class="text-muted">Nenhum atributo cadastrado. <a href="{{ url_for("produto.listar_atributos") }}">Cadastre atributos</a> primeiro.</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="text-right mt-3">
+                                    <a href="{{ url_for("produto.listar_atributos") }}" class="btn btn-outline-secondary mr-2">
+                                        <i class="fas fa-cog"></i> Gerenciar Atributos
+                                    </a>
+                                    <button type="button" id="btn-gerar-variacoes" class="btn btn-success" {% if not atributos %}disabled{% endif %}>
+                                        <i class="fas fa-magic mr-1"></i>Gerar Combinações
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Variações Geradas -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Variações (SKUs) Cadastradas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="variacoes-container">
+                                <table class="table table-striped table-bordered table-sm" id="variacoes-table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>SKU</th>
+                                            <th>Atributos</th>
+                                            <th>Preço Venda (R$)</th>
+                                            <th>Estoque Mín.</th>
+                                            <th>Estoque Atual</th>
+                                            <th width="100">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if variacoes is defined and variacoes %}
+                                            {% for variacao in variacoes %}
+                                                <tr data-id="{{ variacao.id }}">
+                                                    <td>{{ variacao.sku }}</td> <!-- SKU não editável -->
+                                                    <td>
+                                                        {% for valor in variacao.atributos_valores %}
+                                                            <span class="badge badge-secondary atributo-valor-badge">
+                                                                {{ valor.atributo.nome }}: {{ valor.valor }}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="preco_venda" class="form-control form-control-sm variacao-input" 
+                                                               value="{{ variacao.preco_venda }}" data-original="{{ variacao.preco_venda }}" 
+                                                               step="0.01" min="0" required>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="estoque_minimo" class="form-control form-control-sm variacao-input" 
+                                                               value="{{ variacao.estoque_minimo }}" data-original="{{ variacao.estoque_minimo }}" 
+                                                               min="0" required>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge badge-pill {% if variacao.quantidade_atual < variacao.estoque_minimo %}badge-danger{% else %}badge-success{% endif %}">
+                                                            {{ variacao.quantidade_atual }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-success btn-salvar-variacao" style="display: none;">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-secondary btn-cancelar-variacao" style="display: none;">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-danger btn-excluir-variacao">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr id="sem-variacoes">
+                                                <td colspan="6" class="text-center text-muted">Nenhuma variação cadastrada para este produto.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div> <!-- Fim tab-content -->
+        </div> <!-- Fim card-body -->
+    </div> <!-- Fim card -->
+</div> <!-- Fim container -->
+
+<!-- Modal Genérico para Formulários -->
+<div class="modal fade" id="modal-generico" tabindex="-1" role="dialog" aria-labelledby="modal-generico-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-generico-label">Carregando...</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-generico-body">
+                <!-- Conteúdo do formulário será carregado aqui -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-salvar-modal">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Geração de Variações -->
+<div class="modal fade" id="modal-gerar-variacoes" tabindex="-1" role="dialog" aria-labelledby="modal-gerar-variacoes-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modal-gerar-variacoes-label">Gerar Variações (SKUs)</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Atenção: Serão geradas todas as combinações possíveis dos atributos e valores selecionados.
+                    Variações com SKUs já existentes serão ignoradas. O preço e estoque serão gerenciados posteriormente
+                    nas entradas e saídas de estoque.
+                </div>
+                
+                <form id="gerar-variacoes-form">
+                    <div class="form-group">
+                        <label for="prefixo-sku" class="required-field">Prefixo do SKU</label>
+                        <input type="text" class="form-control" id="prefixo-sku" required
+                               value="{{ produto.sku_base or ('PROD' + produto.id|string) }}">
+                        <small class="form-text text-muted">
+                            O SKU completo será: Prefixo + ValorAtributo1 + ValorAtributo2 + ... (Ex: CAM-AZUL-M)
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Combinações que serão geradas:</label>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered" id="combinacoes-table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Combinação</th>
+                                        <th>SKU Previsto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Preenchido via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btn-confirmar-variacoes">
+                    <i class="fas fa-check mr-1"></i>Confirmar e Gerar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    // --- Funções Auxiliares --- 
+    function gerarCombinacoes(atributos) {
+        if (!atributos || atributos.length === 0) return [[]];
+        
+        const primeiroAtributo = atributos[0];
+        const restante = gerarCombinacoes(atributos.slice(1));
+        const combinacoes = [];
+
+        primeiroAtributo.valores.forEach(valor => {
+            restante.forEach(combRestante => {
+                combinacoes.push([{
+                    atributoId: primeiroAtributo.id,
+                    atributoNome: primeiroAtributo.nome,
+                    valorId: valor.id,
+                    valor: valor.valor
+                }, ...combRestante]);
+            });
+        });
+        return combinacoes;
+    }
+
+    function atualizarPrevisaoSKU(combinacoes, prefixo) {
+        $("#combinacoes-table tbody").empty();
+        if (combinacoes.length === 0) {
+             $("#combinacoes-table tbody").append('<tr><td colspan="2" class="text-muted text-center">Nenhuma combinação a ser gerada.</td></tr>');
+             return;
+        }
+        combinacoes.forEach(function(combinacao) {
+            const descricao = combinacao.map(item => `${item.atributoNome}: ${item.valor}`).join(", ");
+            const sufixo = combinacao.map(item => item.valor.replace(/\s+/g, "").toUpperCase()).join("-");
+            const skuCompleto = prefixo ? `${prefixo}-${sufixo}` : sufixo;
+            
+            $("#combinacoes-table tbody").append(`
+                <tr>
+                    <td>${descricao}</td>
+                    <td>${skuCompleto}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // --- Inicialização e Eventos --- 
+    $(document).ready(function() {
+        // Inicializar Select2
+        $(".select2-field").select2({
+            theme: "bootstrap4",
+            width: "100%",
+            placeholder: "Selecione...",
+            allowClear: true
+        });
+
+        // --- Cadastro Rápido (Modal Genérico) ---
+        function abrirModalCadastroRapido(url, titulo, selectTargetId) {
+            $("#modal-generico-label").text(titulo);
+            $("#modal-generico-body").html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i> Carregando...</div>');
+            $("#modal-generico").modal("show");
+
+            // Carregar formulário no modal
+            $.get(url, function(data) {
+                $("#modal-generico-body").html(data);
+            }).fail(function() {
+                 $("#modal-generico-body").html('<div class="alert alert-danger">Erro ao carregar formulário.</div>');
+            });
+
+            // Configurar botão Salvar do modal
+            $("#btn-salvar-modal").off("click").on("click", function() {
+                const form = $("#modal-generico-body form");
+                $.post(form.attr("action"), form.serialize())
+                    .done(function(response) {
+                        if (response.success) {
+                            // Adicionar nova opção ao Select2 e selecioná-la
+                            const selectField = $(`#${selectTargetId}`);
+                            const newOption = new Option(response.nome, response.id, true, true);
+                            selectField.append(newOption).trigger("change");
+                            $("#modal-generico").modal("hide");
+                            alert(titulo.replace("Novo", "Nova") + " cadastrado(a) com sucesso!");
+                        } else {
+                            alert("Erro ao salvar: " + (response.message || "Verifique os dados."));
+                        }
+                    })
+                    .fail(function() {
+                        alert("Erro de comunicação ao salvar.");
+                    });
+            });
+        }
+
+        $("#btn-nova-categoria").click(function() {
+            abrirModalCadastroRapido("{{ url_for("produto.nova_categoria") }}", "Nova Categoria", "{{ form.categoria_id.id }}");
+        });
+
+        $("#btn-novo-fornecedor").click(function() {
+            // Implementar rota similar para fornecedor se necessário, ou abrir a página completa
+             window.open("{{ url_for("cliente_fornecedor.novo") }}?tipo=fornecedor", "_blank");
+             alert("A página de cadastro de fornecedor foi aberta em uma nova aba. Após cadastrar, atualize esta página para ver o novo fornecedor na lista.");
+        });
+        
+        $(".btn-novo-valor-atributo").click(function() {
+            const atributoId = $(this).data("atributo-id");
+            const atributoNome = $(this).data("atributo-nome");
+            const url = `{{ url_for("produto.novo_valor_atributo", atributo_id=0) }}`.replace("0", atributoId) + "?source=modal";
+            
+            $("#modal-generico-label").text(`Novo Valor para ${atributoNome}`);
+            $("#modal-generico-body").html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i> Carregando...</div>');
+            $("#modal-generico").modal("show");
+
+            $.get(url, function(data) {
+                $("#modal-generico-body").html(data);
+            }).fail(function() {
+                 $("#modal-generico-body").html('<div class="alert alert-danger">Erro ao carregar formulário.</div>');
+            });
+
+            $("#btn-salvar-modal").off("click").on("click", function() {
+                const form = $("#modal-generico-body form");
+                $.post(form.attr("action"), form.serialize())
+                    .done(function(response) {
+                        if (response.success) {
+                            // Adicionar checkbox do novo valor na interface
+                            const container = $(`#atributo-${response.atributo_id}`).closest(".card").find(".card-body");
+                            container.find(".text-muted").remove(); // Remove msg de nenhum valor
+                            container.append(`
+                                <div class="custom-control custom-checkbox ml-2">
+                                    <input type="checkbox" class="custom-control-input valor-checkbox" 
+                                           id="valor-${response.id}" value="${response.id}"
+                                           data-atributo-id="${response.atributo_id}"
+                                           data-atributo-nome="${atributoNome}"
+                                           data-valor="${response.valor}">
+                                    <label class="custom-control-label" for="valor-${response.id}">
+                                        ${response.valor}
+                                    </label>
+                                </div>
+                            `);
+                            $("#modal-generico").modal("hide");
+                            alert("Valor cadastrado com sucesso!");
+                        } else {
+                            alert("Erro ao salvar: " + (response.message || "Verifique os dados."));
+                        }
+                    })
+                    .fail(function() {
+                        alert("Erro de comunicação ao salvar.");
+                    });
+            });
+        });
+
+        // --- Lógica da Aba de Variações ---
+        let combinacoesParaGerar = [];
+
+        $(".atributo-checkbox").change(function() {
+            const atributoId = $(this).val();
+            const checked = $(this).prop("checked");
+            $(`input[data-atributo-id="${atributoId}"]`).prop("checked", checked);
+        });
+        
+        $(".valor-checkbox").change(function() {
+            const atributoId = $(this).data("atributo-id");
+            const isChecked = $(`input[data-atributo-id="${atributoId}"]:checked`).length > 0;
+            $(`#atributo-${atributoId}`).prop("checked", isChecked);
+        });
+        
+        $("#btn-gerar-variacoes").click(function() {
+            const atributosSelecionados = [];
+            $(".atributo-checkbox:checked").each(function() {
+                const atributoId = $(this).val();
+                const valores = [];
+                $(`input[data-atributo-id="${atributoId}"]:checked`).each(function() {
+                    valores.push({ id: $(this).val(), valor: $(this).data("valor") });
+                });
+                if (valores.length > 0) {
+                    atributosSelecionados.push({ id: atributoId, nome: $(this).data("nome"), valores: valores });
+                } else {
+                    alert(`Selecione pelo menos um valor para o atributo "${$(this).data("nome")}".`);
+                    return false; // Interrompe o each
+                }
+            });
+
+            if (atributosSelecionados.length === 0) {
+                alert("Selecione pelo menos um atributo com valores para gerar combinações.");
+                return;
+            }
+            
+            combinacoesParaGerar = gerarCombinacoes(atributosSelecionados);
+            atualizarPrevisaoSKU(combinacoesParaGerar, $("#prefixo-sku").val());
+            $("#modal-gerar-variacoes").modal("show");
+        });
+
+        $("#prefixo-sku").on("input", function() {
+            atualizarPrevisaoSKU(combinacoesParaGerar, $(this).val());
+        });
+
+        $("#btn-confirmar-variacoes").click(function() {
+            const prefixoSku = $("#prefixo-sku").val();
+            
+            if (!prefixoSku) {
+                alert("Preencha o Prefixo SKU.");
+                return;
+            }
+            if (combinacoesParaGerar.length === 0) {
+                 alert("Nenhuma combinação válida para gerar.");
+                 return;
+            }
+
+            $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Gerando...');
+
+            $.ajax({
+                url: `{{ url_for("produto.gerar_variacoes", id=produto.id if produto else 0) }}`,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    prefixo_sku: prefixoSku,
+                    combinacoes: combinacoesParaGerar
+                }),
+                success: function(response) {
+                    alert(response.message);
+                    if (response.success) {
+                        $("#modal-gerar-variacoes").modal("hide");
+                        location.reload(); // Recarrega para mostrar novas variações
+                    }
+                },
+                error: function() {
+                    alert("Erro de comunicação ao gerar variações.");
+                },
+                complete: function() {
+                     $("#btn-confirmar-variacoes").prop("disabled", false).html('<i class="fas fa-check mr-1"></i>Confirmar e Gerar');
+                }
+            });
+        });
+
+        // Edição inline das variações
+        $("#variacoes-table").on("input", ".variacao-input", function() {
+            const row = $(this).closest("tr");
+            row.find(".btn-salvar-variacao, .btn-cancelar-variacao").show();
+        });
+
+        $("#variacoes-table").on("click", ".btn-cancelar-variacao", function() {
+            const row = $(this).closest("tr");
+            row.find(".variacao-input").each(function() {
+                $(this).val($(this).data("original"));
+            });
+            row.find(".btn-salvar-variacao, .btn-cancelar-variacao").hide();
+        });
+
+        $("#variacoes-table").on("click", ".btn-salvar-variacao", function() {
+            const row = $(this).closest("tr");
+            const id = row.data("id");
+            const data = {};
+            let hasError = false;
+
+            row.find(".variacao-input").each(function() {
+                const name = $(this).attr("name");
+                const value = $(this).val();
+                if (!value && $(this).prop('required')) { // Basic check
+                    alert(`O campo ${name} é obrigatório.`);
+                    hasError = true;
+                    return false;
+                }
+                data[name] = value;
+            });
+
+            if (hasError) return;
+
+            const btnSalvar = $(this);
+            btnSalvar.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: `{{ url_for("produto.atualizar_variacao", id=0) }}`.replace("0", id),
+                method: "POST",
+                data: data,
+                success: function(response) {
+                    alert(response.message);
+                    if (response.success) {
+                        row.find(".variacao-input").each(function() {
+                            $(this).data("original", $(this).val()); // Atualiza valor original
+                        });
+                        row.find(".btn-salvar-variacao, .btn-cancelar-variacao").hide();
+                    } else {
+                        // Reverter se deu erro? Ou deixar para o usuário corrigir?
+                        // row.find(".btn-cancelar-variacao").click(); 
+                    }
+                },
+                error: function() {
+                    alert("Erro de comunicação ao salvar variação.");
+                },
+                complete: function() {
+                    btnSalvar.prop("disabled", false).html('<i class="fas fa-check"></i>');
+                }
+            });
+        });
+
+        // Excluir variação
+        $("#variacoes-table").on("click", ".btn-excluir-variacao", function() {
+            const row = $(this).closest("tr");
+            const id = row.data("id");
+            const sku = row.find("td:first").text();
+            
+            if (confirm(`Tem certeza que deseja excluir a variação SKU: ${sku}? Esta ação não pode ser desfeita.`)) {
+                 const btnExcluir = $(this);
+                 btnExcluir.prop("disabled", true);
+
+                $.ajax({
+                    url: `{{ url_for("produto.excluir_variacao", id=0) }}`.replace("0", id),
+                    method: "POST",
+                    success: function(response) {
+                        alert(response.message);
+                        if (response.success) {
+                            row.remove();
+                            if ($("#variacoes-table tbody tr").length === 0) {
+                                $("#variacoes-table tbody").html('<tr id="sem-variacoes"><td colspan="6" class="text-center text-muted">Nenhuma variação cadastrada para este produto.</td></tr>');
+                            }
+                        } else {
+                             btnExcluir.prop("disabled", false);
+                        }
+                    },
+                    error: function() {
+                        alert("Erro de comunicação ao excluir variação.");
+                         btnExcluir.prop("disabled", false);
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+{% endblock %}

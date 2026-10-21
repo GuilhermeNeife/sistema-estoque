@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - Sistema de Controle de Estoque{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tag mr-2"></i>{{ titulo }}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit mr-2"></i>{{ titulo }}
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.csrf_token }}
+                    
+                    <div class="form-group">
+                        {{ form.nome.label(class="form-label") }}
+                        {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
+                        {% if form.nome.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.nome.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.descricao.label(class="form-label") }}
+                        {{ form.descricao(class="form-control" + (" is-invalid" if form.descricao.errors else ""), rows=3) }}
+                        {% if form.descricao.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.descricao.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <a href="{{ url_for('produto.listar_atributos') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-1"></i>Voltar
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

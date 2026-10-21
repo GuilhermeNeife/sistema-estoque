@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Categorias - Sistema de Controle de Estoque{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="jumbotron mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tags mr-2"></i>Categorias
+            </h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('categoria.nova') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle mr-1"></i>Nova Categoria
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list mr-2"></i>Lista de Categorias
+                </div>
+                <div class="card-body">
+                    {% if categorias %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Produtos</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for categoria in categorias %}
+                                <tr>
+                                    <td>{{ categoria.nome }}</td>
+                                    <td>{{ categoria.descricao|truncate(50) }}</td>
+                                    <td>{{ categoria.produtos|length }}</td>
+                                    <td>
+                                        <a href="{{ url_for('categoria.editar', id=categoria.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ categoria.id }}">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </button>
+                                        
+                                        <!-- Modal de confirmação de exclusão -->
+                                        <div class="modal fade" id="deleteModal{{ categoria.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ categoria.id }}" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ categoria.id }}">Confirmar Exclusão</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Tem certeza que deseja excluir a categoria <strong>{{ categoria.nome }}</strong>?
+                                                        {% if categoria.produtos %}
+                                                        <div class="alert alert-warning mt-3">
+                                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                            Esta categoria possui {{ categoria.produtos|length }} produto(s) associado(s).
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                        <form action="{{ url_for('categoria.excluir', id=categoria.id) }}" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Nenhuma categoria cadastrada. <a href="{{ url_for('categoria.nova') }}">Cadastre uma nova categoria</a>.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

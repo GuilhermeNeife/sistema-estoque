@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Estoque Baixo - Estoque PimentaMix{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Relatório de Estoque Baixo</h2>
+        <a href="{{ url_for('relatorio.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Produtos com Estoque Abaixo do Mínimo</h5>
+        </div>
+        <div class="card-body">
+            {% if dados %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Atenção!</strong> Existem {{ dados|length }} produtos com estoque abaixo do mínimo.
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Produto</th>
+                                <th>Variação</th>
+                                <th>SKU</th>
+                                <th>Estoque Atual</th>
+                                <th>Estoque Mínimo</th>
+                                <th>Diferença</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in dados %}
+                                <tr>
+                                    <td>{{ item.produto.nome }}</td>
+                                    <td>{{ item.variacao.nome }}</td>
+                                    <td>{{ item.variacao.sku }}</td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ item.quantidade_atual }}</span>
+                                    </td>
+                                    <td>{{ item.estoque_minimo }}</td>
+                                    <td>{{ item.quantidade_atual - item.estoque_minimo }}</td>
+                                    <td>
+                                        <a href="{{ url_for('estoque.nova_entrada') }}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-plus-circle"></i> Entrada
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Parabéns!</strong> Não há produtos com estoque abaixo do mínimo.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Botões de Ação -->
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('estoque.nova_entrada') }}" class="btn btn-success mr-2">
+            <i class="fas fa-plus-circle mr-1"></i>Registrar Entrada
+        </a>
+        <a href="{{ url_for('relatorio.estoque_atual') }}" class="btn btn-primary">
+            <i class="fas fa-boxes mr-1"></i>Ver Estoque Completo
+        </a>
+    </div>
+</div>
+{% endblock %}

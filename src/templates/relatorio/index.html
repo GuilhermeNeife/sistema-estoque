@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - Estoque PimentaMix{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Relatórios</h2>
+    
+    <div class="row">
+        <!-- Estoque Atual -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Estoque Atual</h5>
+                </div>
+                <div class="card-body">
+                    <p>Visualize o estoque atual de todos os produtos e suas variações.</p>
+                    <p>Este relatório mostra:</p>
+                    <ul>
+                        <li>Produtos e suas variações</li>
+                        <li>Quantidade em estoque</li>
+                        <li>Estoque mínimo</li>
+                        <li>Status do estoque (normal/baixo)</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('relatorio.estoque_atual') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-boxes mr-2"></i>Ver Estoque Atual
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estoque Baixo -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Estoque Baixo</h5>
+                </div>
+                <div class="card-body">
+                    <p>Visualize apenas os produtos com estoque abaixo do mínimo.</p>
+                    <p>Este relatório mostra:</p>
+                    <ul>
+                        <li>Produtos com estoque baixo</li>
+                        <li>Quantidade atual vs. mínima</li>
+                        <li>Informações para reposição</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('relatorio.estoque_baixo') }}" class="btn btn-danger btn-block">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Ver Estoque Baixo
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Movimentações -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Movimentações</h5>
+                </div>
+                <div class="card-body">
+                    <p>Visualize todas as entradas e saídas em um período específico.</p>
+                    <p>Este relatório mostra:</p>
+                    <ul>
+                        <li>Entradas e saídas por período</li>
+                        <li>Totais de movimentação</li>
+                        <li>Valores de compra</li>
+                        <li>Fornecedores e clientes</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('relatorio.movimentacoes') }}" class="btn btn-success btn-block">
+                        <i class="fas fa-exchange-alt mr-2"></i>Ver Movimentações
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Clientes e Fornecedores -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Clientes e Fornecedores</h5>
+                </div>
+                <div class="card-body">
+                    <p>Visualize a lista completa de clientes e fornecedores.</p>
+                    <p>Este relatório mostra:</p>
+                    <ul>
+                        <li>Dados cadastrais</li>
+                        <li>Contatos</li>
+                        <li>Histórico de movimentações</li>
+                        <li>Responsáveis (fornecedores)</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('relatorio.clientes_fornecedores') }}" class="btn btn-info btn-block">
+                        <i class="fas fa-address-book mr-2"></i>Ver Clientes e Fornecedores
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

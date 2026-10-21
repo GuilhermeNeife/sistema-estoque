@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Atributos - Sistema de Controle de Estoque{% endblock %}
+
+{% block extra_css %}
+<style>
+.valor-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding-right: 0.3em; /* Espaço para o botão de remover */
+}
+.remove-valor-btn {
+    font-size: 0.8em;
+    margin-left: 5px;
+    padding: 0.1em 0.3em;
+    line-height: 1;
+    background: none;
+    border: none;
+    color: white;
+    opacity: 0.7;
+    cursor: pointer;
+}
+.remove-valor-btn:hover {
+    opacity: 1;
+}
+.add-valor-form {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+.add-valor-form input {
+    flex-grow: 1;
+    margin-right: 5px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tags mr-2"></i>Atributos de Produtos
+            </h1>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for("produto.novo_atributo") }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle mr-1"></i>Novo Atributo
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list mr-2"></i>Lista de Atributos
+                </div>
+                <div class="card-body">
+                    {% if atributos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Valores (Adicionar/Remover)</th>
+                                    <th>Ações do Atributo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for atributo in atributos %}
+                                <tr data-atributo-id="{{ atributo.id }}">
+                                    <td>{{ atributo.nome }}</td>
+                                    <td>{{ atributo.descricao or "-" }}</td>
+                                    <td class="valores-cell">
+                                        <div class="valores-list mb-2">
+                                            {% for valor in atributo.valores %}
+                                            <span class="badge badge-info valor-badge" data-valor-id="{{ valor.id }}">
+                                                {{ valor.valor }}
+                                                <button type="button" class="remove-valor-btn" title="Remover valor">&times;</button>
+                                            </span>
+                                            {% else %}
+                                            <span class="text-muted no-valores">Nenhum valor cadastrado</span>
+                                            {% endfor %}
+                                        </div>
+                                        <form class="add-valor-form" method="post" action="{{ url_for('produto.novo_valor_atributo', atributo_id=atributo.id) }}">
+                                            <!-- Removida a linha do csrf_token que estava causando o erro -->
+                                            <input type="text" name="valor" class="form-control form-control-sm" placeholder="Novo valor..." required>
+                                            <button type="submit" class="btn btn-sm btn-success add-valor-btn">
+                                                <i class="fas fa-plus"></i> Adicionar
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for("produto.editar_atributo", id=atributo.id) }}" class="btn btn-sm btn-info" title="Editar Atributo">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ atributo.id }}" title="Excluir Atributo">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        
+                                        <!-- Modal de confirmação de exclusão -->
+                                        <div class="modal fade" id="deleteModal{{ atributo.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ atributo.id }}" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ atributo.id }}">Confirmar Exclusão</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Tem certeza que deseja excluir o atributo <strong>{{ atributo.nome }}</strong> e todos os seus valores?
+                                                        <div class="alert alert-warning mt-3">
+                                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                            A exclusão é permanente e removerá todos os valores associados.
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                        <form action="{{ url_for("produto.excluir_atributo", id=atributo.id) }}" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Nenhum atributo cadastrado. <a href="{{ url_for("produto.novo_atributo") }}">Cadastre um novo atributo</a>.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Adicionar Valor
+    document.querySelectorAll(".add-valor-form").forEach(form => {
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const atributoId = form.closest("tr").dataset.atributoId;
+            const url = form.action + "?source=modal"; // Adiciona source=modal para resposta JSON
+            const valorInput = form.querySelector("input[name=\"valor\"]");
+            const valorList = form.closest(".valores-cell").querySelector(".valores-list");
+            const noValoresSpan = valorList.querySelector(".no-valores");
+
+            fetch(url, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest" // Indica requisição AJAX
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Adiciona o novo badge
+                    const newBadge = document.createElement("span");
+                    newBadge.className = "badge badge-info valor-badge";
+                    newBadge.dataset.valorId = data.id;
+                    newBadge.innerHTML = `
+                        ${data.valor}
+                        <button type="button" class="remove-valor-btn" title="Remover valor">&times;</button>
+                    `;
+                    if (noValoresSpan) {
+                        noValoresSpan.remove(); // Remove a mensagem "Nenhum valor"
+                    }
+                    valorList.appendChild(newBadge);
+                    valorInput.value = ""; // Limpa o input
+                    addRemoveListener(newBadge.querySelector(".remove-valor-btn")); // Adiciona listener ao novo botão
+                    showFlashMessage("Valor adicionado com sucesso!", "success");
+                } else {
+                    showFlashMessage(`Erro ao adicionar valor: ${data.message || "Erro desconhecido"}`, "danger");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao adicionar valor:", error);
+                showFlashMessage("Erro de comunicação ao adicionar valor.", "danger");
+            });
+        });
+    });
+
+    // Remover Valor
+    function addRemoveListener(button) {
+        button.addEventListener("click", function(event) {
+            event.preventDefault();
+            const badge = button.closest(".valor-badge");
+            const valorId = badge.dataset.valorId;
+            const url = `/produtos/atributos/valor/${valorId}/excluir`; // URL corrigida
+            
+            if (confirm("Tem certeza que deseja remover este valor?")) {
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const valorList = badge.closest(".valores-list");
+                        badge.remove();
+                        // Se a lista ficar vazia, adiciona a mensagem "Nenhum valor"
+                        if (!valorList.querySelector(".valor-badge")) {
+                            const noValoresSpan = document.createElement("span");
+                            noValoresSpan.className = "text-muted no-valores";
+                            noValoresSpan.textContent = "Nenhum valor cadastrado";
+                            valorList.appendChild(noValoresSpan);
+                        }
+                        showFlashMessage("Valor removido com sucesso!", "success");
+                    } else {
+                        showFlashMessage(`Erro ao remover valor: ${data.message || "Erro desconhecido"}`, "danger");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao remover valor:", error);
+                    showFlashMessage("Erro de comunicação ao remover valor.", "danger");
+                });
+            }
+        });
+    }
+
+    document.querySelectorAll(".remove-valor-btn").forEach(button => {
+        addRemoveListener(button);
+    });
+
+    // Função auxiliar para mostrar mensagens flash (simples)
+    function showFlashMessage(message, category) {
+        const flashContainer = document.querySelector(".container"); // Ou um container específico para flash
+        if (flashContainer) {
+            const alertDiv = document.createElement("div");
+            alertDiv.className = `alert alert-${category} alert-dismissible fade show mt-3`;
+            alertDiv.role = "alert";
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+            // Insere antes do primeiro elemento filho do container ou no final se vazio
+            flashContainer.insertBefore(alertDiv, flashContainer.firstChild);
+            // Auto-dismiss após 5 segundos
+            setTimeout(() => {
+                $(alertDiv).alert("close");
+            }, 5000);
+        }
+    }
+});
+</script>
+{% endblock %}

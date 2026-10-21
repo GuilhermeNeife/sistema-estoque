@@ -1,0 +1,10 @@
+{% from "macros.html" import render_field %}
+<form action="{{ url_for("produto.novo_fornecedor_modal") }}" method="post" id="modal-form">
+    {{ form.csrf_token }}
+    {{ render_field(form.nome, label_visible=true) }}
+    {{ render_field(form.tipo_pessoa, label_visible=true) }}
+    {{ render_field(form.cpf_cnpj, label_visible=true) }}
+    <input type="hidden" name="eh_fornecedor" value="True">
+    <!-- Adicione outros campos essenciais se necessário -->
+</form>
+

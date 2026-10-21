@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Início - Estoque PimentaMix{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="jumbotron mt-4">
+        <h1 class="display-4">Bem-vindo ao Estoque PimentaMix!</h1>
+        <p class="lead">Sistema completo para controle de estoque, clientes, fornecedores e produtos.</p>
+        <hr class="my-4">
+        <p>Utilize o menu acima para navegar entre as funcionalidades do sistema.</p>
+    </div>
+    
+    <!-- Resumo do Sistema -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Produtos</h5>
+                    <p class="card-text display-4" id="total-produtos">...</p>
+                    <a href="{{ url_for('produto.listar') }}" class="btn btn-light">Ver Produtos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text display-4" id="total-clientes">...</p>
+                    <a href="{{ url_for('cliente_fornecedor.listar') }}" class="btn btn-light">Ver Clientes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Fornecedores</h5>
+                    <p class="card-text display-4" id="total-fornecedores">...</p>
+                    <a href="{{ url_for('cliente_fornecedor.listar') }}" class="btn btn-light">Ver Fornecedores</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Estoque Baixo</h5>
+                    <p class="card-text display-4" id="total-estoque-baixo">...</p>
+                    <a href="{{ url_for('relatorio.estoque_baixo') }}" class="btn btn-light">Ver Detalhes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ações Rápidas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('produto.novo') }}" class="btn btn-primary btn-lg btn-block mb-3">
+                                <i class="fas fa-box mr-2"></i>Novo Produto
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('cliente_fornecedor.novo') }}" class="btn btn-success btn-lg btn-block mb-3">
+                                <i class="fas fa-user-plus mr-2"></i>Novo Cliente/Fornecedor
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('estoque.nova_entrada') }}" class="btn btn-info btn-lg btn-block mb-3">
+                                <i class="fas fa-plus-circle mr-2"></i>Entrada Estoque
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('estoque.nova_saida') }}" class="btn btn-danger btn-lg btn-block mb-3">
+                                <i class="fas fa-minus-circle mr-2"></i>Saída Estoque
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Produtos com Estoque Baixo -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Produtos com Estoque Baixo</h5>
+        </div>
+        <div class="card-body">
+            <div id="estoque-baixo-container">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                    <p>Carregando dados...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Últimas Movimentações -->
+    <div class="row">
+        <!-- Últimas Entradas -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Últimas Entradas</h5>
+                </div>
+                <div class="card-body">
+                    <div id="ultimas-entradas-container">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Carregando...</span>
+                            </div>
+                            <p>Carregando dados...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('estoque.entradas') }}" class="btn btn-success btn-block">Ver Todas as Entradas</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Últimas Saídas -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Últimas Saídas</h5>
+                </div>
+                <div class="card-body">
+                    <div id="ultimas-saidas-container">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Carregando...</span>
+                            </div>
+                            <p>Carregando dados...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('estoque.saidas') }}" class="btn btn-info btn-block">Ver Todas as Saídas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Carregar contadores
+        $.ajax({
+            url: '/api/dashboard/contadores',
+            method: 'GET',
+            success: function(response) {
+                $('#total-produtos').text(response.total_produtos);
+                $('#total-clientes').text(response.total_clientes);
+                $('#total-fornecedores').text(response.total_fornecedores);
+                $('#total-estoque-baixo').text(response.total_estoque_baixo);
+            },
+            error: function() {
+                $('#total-produtos').text('Erro');
+                $('#total-clientes').text('Erro');
+                $('#total-fornecedores').text('Erro');
+                $('#total-estoque-baixo').text('Erro');
+            }
+        });
+        
+        // Carregar produtos com estoque baixo
+        $.ajax({
+            url: '/api/dashboard/estoque-baixo',
+            method: 'GET',
+            success: function(response) {
+                if (response.produtos.length > 0) {
+                    let html = '<div class="table-responsive"><table class="table table-sm table-striped">';
+                    html += '<thead><tr><th>Produto</th><th>Variação</th><th>SKU</th><th>Estoque</th><th>Mínimo</th><th>Ações</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    response.produtos.forEach(function(item) {
+                        html += `<tr>
+                            <td>${item.produto_nome}</td>
+                            <td>${item.variacao_nome}</td>
+                            <td>${item.sku}</td>
+                            <td><span class="badge badge-danger">${item.quantidade_atual}</span></td>
+                            <td>${item.estoque_minimo}</td>
+                            <td>
+                                <a href="/estoque/entradas/nova" class="btn btn-sm btn-success">
+                                    <i class="fas fa-plus-circle"></i>
+                                </a>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    
+                    if (response.produtos.length > 5) {
+                        html += `<div class="text-center mt-2">
+                            <a href="/relatorios/estoque-baixo" class="btn btn-outline-danger">
+                                Ver todos os ${response.total} produtos com estoque baixo
+                            </a>
+                        </div>`;
+                    }
+                    
+                    $('#estoque-baixo-container').html(html);
+                } else {
+                    $('#estoque-baixo-container').html('<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>Não há produtos com estoque baixo.</div>');
+                }
+            },
+            error: function() {
+                $('#estoque-baixo-container').html('<div class="alert alert-danger">Erro ao carregar dados.</div>');
+            }
+        });
+        
+        // Carregar últimas entradas
+        $.ajax({
+            url: '/api/dashboard/ultimas-entradas',
+            method: 'GET',
+            success: function(response) {
+                if (response.entradas.length > 0) {
+                    let html = '<div class="table-responsive"><table class="table table-sm table-striped">';
+                    html += '<thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Fornecedor</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    response.entradas.forEach(function(item) {
+                        html += `<tr>
+                            <td>${item.data}</td>
+                            <td>${item.produto}</td>
+                            <td>${item.quantidade}</td>
+                            <td>${item.fornecedor}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    $('#ultimas-entradas-container').html(html);
+                } else {
+                    $('#ultimas-entradas-container').html('<div class="alert alert-info">Nenhuma entrada registrada.</div>');
+                }
+            },
+            error: function() {
+                $('#ultimas-entradas-container').html('<div class="alert alert-danger">Erro ao carregar dados.</div>');
+            }
+        });
+        
+        // Carregar últimas saídas
+        $.ajax({
+            url: '/api/dashboard/ultimas-saidas',
+            method: 'GET',
+            success: function(response) {
+                if (response.saidas.length > 0) {
+                    let html = '<div class="table-responsive"><table class="table table-sm table-striped">';
+                    html += '<thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Cliente</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    response.saidas.forEach(function(item) {
+                        html += `<tr>
+                            <td>${item.data}</td>
+                            <td>${item.produto}</td>
+                            <td>${item.quantidade}</td>
+                            <td>${item.cliente}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    $('#ultimas-saidas-container').html(html);
+                } else {
+                    $('#ultimas-saidas-container').html('<div class="alert alert-info">Nenhuma saída registrada.</div>');
+                }
+            },
+            error: function() {
+                $('#ultimas-saidas-container').html('<div class="alert alert-danger">Erro ao carregar dados.</div>');
+            }
+        });
+    });
+</script>
+{% endblock %}

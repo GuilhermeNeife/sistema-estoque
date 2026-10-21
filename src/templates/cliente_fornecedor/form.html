@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes e Fornecedores - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+    
+    .tab-content {
+        padding: 20px;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+    }
+    
+    .nav-tabs .nav-link {
+        font-weight: 500;
+    }
+    
+    .responsaveis-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ titulo }}</h2>
+        <a href="{{ url_for('cliente_fornecedor.listar') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Cadastro de Cliente/Fornecedor</h5>
+        </div>
+        <div class="card-body">
+            <!-- Abas -->
+            <ul class="nav nav-tabs" id="clienteFornecedorTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if aba_ativa == 'cliente' %}active{% endif %}" id="cliente-tab" data-toggle="tab" href="#cliente" role="tab" aria-controls="cliente" aria-selected="{{ 'true' if aba_ativa == 'cliente' else 'false' }}">
+                        <i class="fas fa-user mr-1"></i>Cliente
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if aba_ativa == 'fornecedor' %}active{% endif %}" id="fornecedor-tab" data-toggle="tab" href="#fornecedor" role="tab" aria-controls="fornecedor" aria-selected="{{ 'true' if aba_ativa == 'fornecedor' else 'false' }}">
+                        <i class="fas fa-truck mr-1"></i>Fornecedor
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Conteúdo das Abas -->
+            <div class="tab-content" id="clienteFornecedorTabsContent">
+                <!-- Aba Cliente -->
+                <div class="tab-pane fade {% if aba_ativa == 'cliente' %}show active{% endif %}" id="cliente" role="tabpanel" aria-labelledby="cliente-tab">
+                    <form method="POST" id="cliente-form">
+                        {{ cliente_form.csrf_token }}
+                        {{ cliente_form.id }}
+                        {{ cliente_form.eh_cliente }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ cliente_form.nome.id }}" class="required-field">Nome</label>
+                                    {{ cliente_form.nome(class="form-control" + (" is-invalid" if cliente_form.nome.errors else "")) }}
+                                    {% if cliente_form.nome.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in cliente_form.nome.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ cliente_form.cpf_cnpj.id }}" class="required-field">CPF/CNPJ</label>
+                                    {{ cliente_form.cpf_cnpj(class="form-control" + (" is-invalid" if cliente_form.cpf_cnpj.errors else "")) }}
+                                    {% if cliente_form.cpf_cnpj.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in cliente_form.cpf_cnpj.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ cliente_form.email.id }}" class="required-field">E-mail</label>
+                                    {{ cliente_form.email(class="form-control" + (" is-invalid" if cliente_form.email.errors else ""), type="email") }}
+                                    {% if cliente_form.email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in cliente_form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ cliente_form.telefone.id }}" class="required-field">Telefone</label>
+                                    {{ cliente_form.telefone(class="form-control" + (" is-invalid" if cliente_form.telefone.errors else "")) }}
+                                    {% if cliente_form.telefone.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in cliente_form.telefone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ cliente_form.endereco.id }}">Endereço</label>
+                            {{ cliente_form.endereco(class="form-control" + (" is-invalid" if cliente_form.endereco.errors else "")) }}
+                            {% if cliente_form.endereco.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in cliente_form.endereco.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            {{ cliente_form.submit_cliente(class="btn btn-primary") }}
+                            <a href="{{ url_for('cliente_fornecedor.listar') }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Aba Fornecedor -->
+                <div class="tab-pane fade {% if aba_ativa == 'fornecedor' %}show active{% endif %}" id="fornecedor" role="tabpanel" aria-labelledby="fornecedor-tab">
+                    <form method="POST" id="fornecedor-form">
+                        {{ fornecedor_form.csrf_token }}
+                        {{ fornecedor_form.id }}
+                        {{ fornecedor_form.eh_fornecedor }}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.razao_social.id }}">Razão Social</label>
+                                    {{ fornecedor_form.razao_social(class="form-control" + (" is-invalid" if fornecedor_form.razao_social.errors else "")) }}
+                                    {% if fornecedor_form.razao_social.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.razao_social.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.nome_fantasia.id }}">Nome Fantasia</label>
+                                    {{ fornecedor_form.nome_fantasia(class="form-control" + (" is-invalid" if fornecedor_form.nome_fantasia.errors else "")) }}
+                                    {% if fornecedor_form.nome_fantasia.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.nome_fantasia.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.nome.id }}">Nome</label>
+                                    {{ fornecedor_form.nome(class="form-control" + (" is-invalid" if fornecedor_form.nome.errors else "")) }}
+                                    {% if fornecedor_form.nome.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.nome.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Preencha se não houver Razão Social ou Nome Fantasia</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.cpf_cnpj.id }}" class="required-field">CNPJ/CPF</label>
+                                    {{ fornecedor_form.cpf_cnpj(class="form-control" + (" is-invalid" if fornecedor_form.cpf_cnpj.errors else "")) }}
+                                    {% if fornecedor_form.cpf_cnpj.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.cpf_cnpj.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.email.id }}" class="required-field">E-mail</label>
+                                    {{ fornecedor_form.email(class="form-control" + (" is-invalid" if fornecedor_form.email.errors else ""), type="email") }}
+                                    {% if fornecedor_form.email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ fornecedor_form.telefone.id }}" class="required-field">Telefone</label>
+                                    {{ fornecedor_form.telefone(class="form-control" + (" is-invalid" if fornecedor_form.telefone.errors else "")) }}
+                                    {% if fornecedor_form.telefone.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in fornecedor_form.telefone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ fornecedor_form.endereco.id }}" class="required-field">Endereço</label>
+                            {{ fornecedor_form.endereco(class="form-control" + (" is-invalid" if fornecedor_form.endereco.errors else "")) }}
+                            {% if fornecedor_form.endereco.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in fornecedor_form.endereco.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ fornecedor_form.observacoes.id }}">Observações</label>
+                            {{ fornecedor_form.observacoes(class="form-control" + (" is-invalid" if fornecedor_form.observacoes.errors else ""), rows=3) }}
+                            {% if fornecedor_form.observacoes.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in fornecedor_form.observacoes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if cliente_fornecedor is defined and cliente_fornecedor %}
+                            <!-- Responsáveis (apenas para edição) -->
+                            <div class="card mt-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">Responsáveis</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="responsavel_nome">Nome</label>
+                                                <input type="text" class="form-control" id="responsavel_nome" name="responsavel_nome">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="responsavel_email">E-mail</label>
+                                                <input type="email" class="form-control" id="responsavel_email" name="responsavel_email">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="responsavel_telefone">Telefone</label>
+                                                <input type="text" class="form-control" id="responsavel_telefone" name="responsavel_telefone">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                <button type="button" class="btn btn-success btn-block" id="btn-adicionar-responsavel">
+                                                    <i class="fas fa-plus-circle"></i> Adicionar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="responsaveis-list mt-3">
+                                        <table class="table table-striped table-bordered" id="responsaveis-table">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Nome</th>
+                                                    <th>E-mail</th>
+                                                    <th>Telefone</th>
+                                                    <th width="80">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if responsaveis is defined and responsaveis %}
+                                                    {% for responsavel in responsaveis %}
+                                                        <tr data-id="{{ responsavel.id }}">
+                                                            <td>{{ responsavel.nome }}</td>
+                                                            <td>{{ responsavel.email }}</td>
+                                                            <td>{{ responsavel.telefone }}</td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-danger btn-excluir-responsavel">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr id="sem-responsaveis">
+                                                        <td colspan="4" class="text-center">Nenhum responsável cadastrado</td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-group mt-4">
+                            {{ fornecedor_form.submit_fornecedor(class="btn btn-primary") }}
+                            <a href="{{ url_for('cliente_fornecedor.listar') }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Formatar CPF/CNPJ
+        $('#cliente_form-cpf_cnpj, #fornecedor_form-cpf_cnpj').on('input', function() {
+            let value = $(this).val().replace(/\D/g, '');
+            if (value.length <= 11) {
+                // CPF
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // CNPJ
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            $(this).val(value);
+        });
+        
+        // Formatar telefone
+        $('#cliente_form-telefone, #fornecedor_form-telefone, #responsavel_telefone').on('input', function() {
+            let value = $(this).val().replace(/\D/g, '');
+            if (value.length <= 10) {
+                // Telefone fixo
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                // Celular
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            $(this).val(value);
+        });
+        
+        {% if cliente_fornecedor is defined and cliente_fornecedor %}
+            // Adicionar responsável
+            $('#btn-adicionar-responsavel').click(function() {
+                const nome = $('#responsavel_nome').val();
+                const email = $('#responsavel_email').val();
+                const telefone = $('#responsavel_telefone').val();
+                
+                if (!nome || !email || !telefone) {
+                    alert('Preencha todos os campos do responsável');
+                    return;
+                }
+                
+                $.ajax({
+                    url: '{{ url_for("cliente_fornecedor.adicionar_responsavel") }}',
+                    method: 'POST',
+                    data: {
+                        fornecedor_id: {{ cliente_fornecedor.id }},
+                        nome: nome,
+                        email: email,
+                        telefone: telefone
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Remover mensagem de nenhum responsável
+                            $('#sem-responsaveis').remove();
+                            
+                            // Adicionar linha na tabela
+                            const newRow = `
+                                <tr data-id="${response.id}">
+                                    <td>${response.nome}</td>
+                                    <td>${response.email}</td>
+                                    <td>${response.telefone}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-danger btn-excluir-responsavel">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            $('#responsaveis-table tbody').append(newRow);
+                            
+                            // Limpar campos
+                            $('#responsavel_nome').val('');
+                            $('#responsavel_email').val('');
+                            $('#responsavel_telefone').val('');
+                        } else {
+                            alert('Erro ao adicionar responsável: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Erro ao adicionar responsável');
+                    }
+                });
+            });
+            
+            // Excluir responsável
+            $(document).on('click', '.btn-excluir-responsavel', function() {
+                const row = $(this).closest('tr');
+                const id = row.data('id');
+                
+                if (confirm('Tem certeza que deseja excluir este responsável?')) {
+                    $.ajax({
+                        url: '{{ url_for("cliente_fornecedor.excluir_responsavel", id=0) }}'.replace('0', id),
+                        method: 'POST',
+                        success: function(response) {
+                            if (response.success) {
+                                row.remove();
+                                
+                                // Se não houver mais responsáveis, mostrar mensagem
+                                if ($('#responsaveis-table tbody tr').length === 0) {
+                                    $('#responsaveis-table tbody').html(`
+                                        <tr id="sem-responsaveis">
+                                            <td colspan="4" class="text-center">Nenhum responsável cadastrado</td>
+                                        </tr>
+                                    `);
+                                }
+                            } else {
+                                alert('Erro ao excluir responsável: ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Erro ao excluir responsável');
+                        }
+                    });
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

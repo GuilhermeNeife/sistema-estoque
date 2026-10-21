@@ -1,0 +1,159 @@
+/* Estilos gerais */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Navbar personalizada */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Cards com sombra e hover */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+/* Botões com ícones */
+.btn i {
+    margin-right: 5px;
+}
+
+/* Tabelas */
+.table thead th {
+    background-color: #343a40;
+    color: white;
+    border-color: #454d55;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+/* Formulários */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Alertas */
+.alert {
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Badges */
+.badge {
+    font-size: 85%;
+    font-weight: 600;
+    padding: 0.35em 0.65em;
+}
+
+/* Estilo para abas */
+.nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: bold;
+}
+
+/* Estilo para campos obrigatórios */
+.required-field::after {
+    content: "*";
+    color: red;
+    margin-left: 4px;
+}
+
+/* Estilo para estoque baixo */
+.estoque-baixo {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Estilo para footer */
+footer {
+    margin-top: 50px;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animações */
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilo para impressão */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    body {
+        font-size: 12pt;
+    }
+    
+    .card {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+    
+    .table {
+        border-collapse: collapse;
+    }
+    
+    .table td, .table th {
+        background-color: #fff !important;
+        border: 1px solid #ddd !important;
+    }
+}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Página Não Encontrada - Estoque PimentaMix{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-1">404</h1>
+            <h2>Página Não Encontrada</h2>
+            <p class="lead">Desculpe, a página que você está procurando não existe ou foi movida.</p>
+            <hr>
+            <p>
+                Você pode tentar voltar para a <a href="{{ url_for("home.index") }}">página inicial</a> ou verificar se o endereço digitado está correto.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

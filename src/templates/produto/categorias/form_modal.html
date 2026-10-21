@@ -1,0 +1,7 @@
+{% from "macros.html" import render_field %}
+<form action="{{ url_for("produto.nova_categoria") }}" method="post" id="modal-form">
+    {{ form.csrf_token }}
+    {{ render_field(form.nome, label_visible=true) }}
+    {{ render_field(form.descricao, label_visible=true) }}
+</form>
+
