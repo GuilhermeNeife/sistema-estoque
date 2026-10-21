@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Entrada de Estoque - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Editar Entrada de Estoque</h2>
+        <a href="{{ url_for('estoque.entradas') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Formulário de Edição</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Atenção:</strong> Alterar a quantidade afetará o estoque atual do produto.
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">Informações do Produto</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Produto:</strong> {{ entrada.variacao.produto.nome }}</p>
+                            <p><strong>Variação:</strong> {{ entrada.variacao.nome }}</p>
+                            <p><strong>SKU:</strong> {{ entrada.variacao.sku }}</p>
+                            <p><strong>Estoque Atual:</strong> {{ entrada.variacao.quantidade_atual }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">Informações do Fornecedor</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if entrada.fornecedor %}
+                                <p><strong>Fornecedor:</strong> {{ entrada.fornecedor.nome }}</p>
+                                <p><strong>Telefone:</strong> {{ entrada.fornecedor.telefone or '-' }}</p>
+                                <p><strong>Email:</strong> {{ entrada.fornecedor.email or '-' }}</p>
+                            {% else %}
+                                <p>Nenhum fornecedor associado a esta entrada.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST">
+                {{ form.csrf_token }}
+                {{ form.id }}
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
+                            {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
+                            {% if form.quantidade.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.quantidade.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Quantidade original: {{ entrada.quantidade }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.preco_custo.id }}" class="required-field">Preço de Custo</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">R$</span>
+                                </div>
+                                {{ form.preco_custo(class="form-control" + (" is-invalid" if form.preco_custo.errors else ""), min="0", step="0.01") }}
+                                {% if form.preco_custo.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preco_custo.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="{{ form.data.id }}" class="required-field">Data</label>
+                            {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
+                            {% if form.data.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.data.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.nota_fiscal.id }}">Nota Fiscal</label>
+                            {{ form.nota_fiscal(class="form-control" + (" is-invalid" if form.nota_fiscal.errors else "")) }}
+                            {% if form.nota_fiscal.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.nota_fiscal.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.observacao.id }}">Observação</label>
+                            {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
+                            {% if form.observacao.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.observacao.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-success") }}
+                    <a href="{{ url_for('estoque.entradas') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Formatar preço de custo
+        $('#entrada_estoque_edit_form-preco_custo').on('input', function() {
+            let value = $(this).val();
+            if (value) {
+                // Garantir que seja um número com no máximo 2 casas decimais
+                value = parseFloat(value).toFixed(2);
+                if (!isNaN(value)) {
+                    $(this).val(value);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

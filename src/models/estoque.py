@@ -22,6 +22,8 @@ class SaidaEstoque(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     variacao_id = db.Column(db.Integer, db.ForeignKey('produto_variacao.id'), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
+    preco_venda = db.Column(db.Float, nullable=False)  # Novo campo
+    valor_total = db.Column(db.Float, nullable=False)  # Novo campo
     
     data = db.Column(db.DateTime, default=datetime.utcnow)
     cliente_id = db.Column(db.Integer, db.ForeignKey('cliente_fornecedor.id'), nullable=True)

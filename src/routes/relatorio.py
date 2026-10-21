@@ -71,10 +71,16 @@ def movimentacoes():
         SaidaEstoque.data <= data_fim
     ).order_by(SaidaEstoque.data.desc()).all()
     
-    # Calcular totais
+    # Calcular totais de quantidade
     total_entradas = sum(entrada.quantidade for entrada in entradas)
     total_saidas = sum(saida.quantidade for saida in saidas)
+    
+    # Calcular totais financeiros
     valor_total_entradas = sum(entrada.quantidade * entrada.preco_custo for entrada in entradas)
+    valor_total_saidas = sum(saida.quantidade * saida.preco_venda for saida in saidas)
+    
+    # Calcular lucro/prejuízo
+    lucro_prejuizo = valor_total_saidas - valor_total_entradas
     
     return render_template('relatorio/movimentacoes.html', 
                           entradas=entradas,
@@ -83,7 +89,9 @@ def movimentacoes():
                           data_fim=data_fim,
                           total_entradas=total_entradas,
                           total_saidas=total_saidas,
-                          valor_total_entradas=valor_total_entradas)
+                          valor_total_entradas=valor_total_entradas,
+                          valor_total_saidas=valor_total_saidas,
+                          lucro_prejuizo=lucro_prejuizo)
 
 @relatorio_bp.route('/clientes-fornecedores')
 def clientes_fornecedores():

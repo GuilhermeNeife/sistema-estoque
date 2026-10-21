@@ -25,7 +25,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mr-auto">
+                <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('home.index') }}">
                             <i class="fas fa-home mr-1"></i>Início
@@ -36,7 +36,7 @@
                             <i class="fas fa-box mr-1"></i>Produtos
                         </a>
                         <div class="dropdown-menu" aria-labelledby="produtosDropdown">
-                            <a class="dropdown-item" href="{{ url_for('produto.listar') }}">Listar Produtos</a>
+                            <a class="dropdown-item" href="{{ url_for('produto.listar') }}">Produtos</a>
                             <a class="dropdown-item" href="{{ url_for('produto.novo') }}">Novo Produto</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{{ url_for('produto.listar_categorias') }}">Categorias</a>
@@ -76,8 +76,6 @@
                         </div>
                     </li>
                 </ul>
-                <span class="navbar-text">
-                    <i class="fas fa-user-circle mr-1"></i>Usuário: Admin
                 </span>
             </div>
         </div>

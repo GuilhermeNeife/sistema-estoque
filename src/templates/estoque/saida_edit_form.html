@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Saída de Estoque - Estoque PimentaMix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Editar Saída de Estoque</h2>
+        <a href="{{ url_for('estoque.saidas') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i>Voltar
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Formulário de Edição</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Atenção:</strong> Alterar a quantidade afetará o estoque atual do produto.
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">Informações do Produto</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Produto:</strong> {{ saida.variacao.produto.nome }}</p>
+                            <p><strong>Variação:</strong> {{ saida.variacao.nome }}</p>
+                            <p><strong>SKU:</strong> {{ saida.variacao.sku }}</p>
+                            <p><strong>Estoque Atual:</strong> {{ saida.variacao.quantidade_atual }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">Informações do Cliente</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if saida.cliente %}
+                                <p><strong>Cliente:</strong> {{ saida.cliente.nome }}</p>
+                                <p><strong>Telefone:</strong> {{ saida.cliente.telefone or '-' }}</p>
+                                <p><strong>Email:</strong> {{ saida.cliente.email or '-' }}</p>
+                            {% else %}
+                                <p>Nenhum cliente associado a esta saída.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST">
+                {{ form.csrf_token }}
+                {{ form.id }}
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
+                            {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
+                            {% if form.quantidade.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.quantidade.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Quantidade original: {{ saida.quantidade }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="{{ form.preco_venda.id }}" class="required-field">Preço de Venda</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">R$</span>
+                                </div>
+                                {{ form.preco_venda(class="form-control" + (" is-invalid" if form.preco_venda.errors else ""), min="0", step="0.01") }}
+                                {% if form.preco_venda.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.preco_venda.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="{{ form.data.id }}" class="required-field">Data</label>
+                            {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), type="date") }}
+                            {% if form.data.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.data.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="{{ form.motivo.id }}">Motivo</label>
+                            {{ form.motivo(class="form-control" + (" is-invalid" if form.motivo.errors else "")) }}
+                            {% if form.motivo.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.motivo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.observacao.id }}">Observação</label>
+                    {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
+                    {% if form.observacao.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.observacao.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-danger") }}
+                    <a href="{{ url_for('estoque.saidas') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Formatar preço de venda
+        $('#saida_estoque_edit_form-preco_venda').on('input', function() {
+            let value = $(this).val();
+            if (value) {
+                // Garantir que seja um número com no máximo 2 casas decimais
+                value = parseFloat(value).toFixed(2);
+                if (!isNaN(value)) {
+                    $(this).val(value);
+                }
+            }
+        });
+        
+        // Calcular valor total ao alterar quantidade ou preço
+        function calcularTotal() {
+            const quantidade = parseInt($('#saida_estoque_edit_form-quantidade').val()) || 0;
+            const preco = parseFloat($('#saida_estoque_edit_form-preco_venda').val()) || 0;
+            const total = quantidade * preco;
+            
+            // Exibir o total calculado (opcional)
+            if ($('#valor-total').length === 0) {
+                $('<div id="valor-total" class="alert alert-info mt-3">' +
+                  '<strong>Valor Total Calculado:</strong> R$ <span id="total-value">0.00</span>' +
+                  '</div>').insertAfter('#saida_estoque_edit_form-preco_venda').closest('.form-group');
+            }
+            
+            $('#total-value').text(total.toFixed(2));
+        }
+        
+        $('#saida_estoque_edit_form-quantidade, #saida_estoque_edit_form-preco_venda').on('input', calcularTotal);
+        
+        // Calcular o total inicial
+        calcularTotal();
+    });
+</script>
+{% endblock %}

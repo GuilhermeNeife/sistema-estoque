@@ -2,6 +2,26 @@
 
 {% block title %}Clientes e Fornecedores - Estoque PimentaMix{% endblock %}
 
+{% block extra_css %}
+<style>
+    .table-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .table-container thead th {
+        position: sticky;
+        top: 0;
+        background-color: #343a40;
+        z-index: 1;
+    }
+    
+    .filter-card {
+        border-top: 3px solid #17a2b8;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,13 +33,37 @@
     
     <!-- Clientes -->
     <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Clientes</h5>
+            <span class="badge badge-light" id="contador-clientes">{{ clientes|length }} registros</span>
         </div>
         <div class="card-body">
+            <!-- Filtros de Clientes -->
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="cliente-busca">Nome/Email:</label>
+                            <input type="text" class="form-control" id="cliente-busca" placeholder="Buscar por nome ou email">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="cliente-cpf-cnpj">CPF/CNPJ:</label>
+                            <input type="text" class="form-control" id="cliente-cpf-cnpj" placeholder="Buscar por CPF ou CNPJ">
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" id="limpar-filtros-cliente" class="btn btn-secondary btn-block">
+                            <i class="fas fa-eraser mr-1"></i>Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             {% if clientes %}
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
+                <div class="table-container">
+                    <table class="table table-striped table-bordered" id="tabela-clientes">
                         <thead class="thead-dark">
                             <tr>
                                 <th>Nome</th>
@@ -32,7 +76,7 @@
                         </thead>
                         <tbody>
                             {% for cliente in clientes %}
-                                <tr>
+                                <tr data-nome="{{ cliente.nome }}" data-email="{{ cliente.email }}" data-cpf-cnpj="{{ cliente.cpf_cnpj }}">
                                     <td>{{ cliente.nome }}</td>
                                     <td>{{ cliente.cpf_cnpj }}</td>
                                     <td>{{ cliente.email }}</td>
@@ -54,13 +98,37 @@
     
     <!-- Fornecedores -->
     <div class="card">
-        <div class="card-header bg-success text-white">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Fornecedores</h5>
+            <span class="badge badge-light" id="contador-fornecedores">{{ fornecedores|length }} registros</span>
         </div>
         <div class="card-body">
+            <!-- Filtros de Fornecedores -->
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="fornecedor-busca">Nome/Razão Social:</label>
+                            <input type="text" class="form-control" id="fornecedor-busca" placeholder="Buscar por nome ou razão social">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="fornecedor-cpf-cnpj">CNPJ/CPF:</label>
+                            <input type="text" class="form-control" id="fornecedor-cpf-cnpj" placeholder="Buscar por CNPJ ou CPF">
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" id="limpar-filtros-fornecedor" class="btn btn-secondary btn-block">
+                            <i class="fas fa-eraser mr-1"></i>Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             {% if fornecedores %}
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
+                <div class="table-container">
+                    <table class="table table-striped table-bordered" id="tabela-fornecedores">
                         <thead class="thead-dark">
                             <tr>
                                 <th>Nome</th>
@@ -74,7 +142,7 @@
                         </thead>
                         <tbody>
                             {% for fornecedor in fornecedores %}
-                                <tr>
+                                <tr data-nome="{{ fornecedor.nome }}" data-razao="{{ fornecedor.razao_social or '' }}" data-cpf-cnpj="{{ fornecedor.cpf_cnpj }}">
                                     <td>{{ fornecedor.nome }}</td>
                                     <td>{{ fornecedor.razao_social or '-' }}</td>
                                     <td>{{ fornecedor.cpf_cnpj }}</td>
@@ -105,4 +173,84 @@
         </button>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Função para filtrar a tabela de clientes
+        function filtrarClientes() {
+            const busca = $('#cliente-busca').val().toLowerCase();
+            const cpfCnpj = $('#cliente-cpf-cnpj').val().toLowerCase();
+            
+            let registrosVisiveis = 0;
+            
+            $('#tabela-clientes tbody tr').each(function() {
+                const nome = $(this).data('nome').toLowerCase();
+                const email = $(this).data('email').toLowerCase();
+                const docCpfCnpj = $(this).data('cpf-cnpj').toLowerCase();
+                
+                // Verificar se atende a todos os filtros
+                const atendeBusca = nome.includes(busca) || email.includes(busca) || busca === '';
+                const atendeCpfCnpj = docCpfCnpj.includes(cpfCnpj) || cpfCnpj === '';
+                
+                if (atendeBusca && atendeCpfCnpj) {
+                    $(this).show();
+                    registrosVisiveis++;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Atualizar contador de registros
+            $('#contador-clientes').text(registrosVisiveis + ' registros');
+        }
+        
+        // Função para filtrar a tabela de fornecedores
+        function filtrarFornecedores() {
+            const busca = $('#fornecedor-busca').val().toLowerCase();
+            const cpfCnpj = $('#fornecedor-cpf-cnpj').val().toLowerCase();
+            
+            let registrosVisiveis = 0;
+            
+            $('#tabela-fornecedores tbody tr').each(function() {
+                const nome = $(this).data('nome').toLowerCase();
+                const razao = $(this).data('razao').toLowerCase();
+                const docCpfCnpj = $(this).data('cpf-cnpj').toLowerCase();
+                
+                // Verificar se atende a todos os filtros
+                const atendeBusca = nome.includes(busca) || razao.includes(busca) || busca === '';
+                const atendeCpfCnpj = docCpfCnpj.includes(cpfCnpj) || cpfCnpj === '';
+                
+                if (atendeBusca && atendeCpfCnpj) {
+                    $(this).show();
+                    registrosVisiveis++;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Atualizar contador de registros
+            $('#contador-fornecedores').text(registrosVisiveis + ' registros');
+        }
+        
+        // Aplicar filtros ao digitar
+        $('#cliente-busca, #cliente-cpf-cnpj').on('input', filtrarClientes);
+        $('#fornecedor-busca, #fornecedor-cpf-cnpj').on('input', filtrarFornecedores);
+        
+        // Limpar filtros de clientes
+        $('#limpar-filtros-cliente').click(function() {
+            $('#cliente-busca').val('');
+            $('#cliente-cpf-cnpj').val('');
+            filtrarClientes();
+        });
+        
+        // Limpar filtros de fornecedores
+        $('#limpar-filtros-fornecedor').click(function() {
+            $('#fornecedor-busca').val('');
+            $('#fornecedor-cpf-cnpj').val('');
+            filtrarFornecedores();
+        });
+    });
+</script>
 {% endblock %}

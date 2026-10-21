@@ -40,38 +40,55 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Total de Entradas</h5>
-                            <p class="card-text display-4">{{ total_entradas }}</p>
-                            <p>unidades</p>
+                <!-- Resumo de Quantidades -->
+
+                
+                <!-- Resumo Financeiro -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0">Resumo Financeiro</h5>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-danger text-white">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Total de Saídas</h5>
-                            <p class="card-text display-4">{{ total_saidas }}</p>
-                            <p>unidades</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Saldo</h5>
-                            <p class="card-text display-4">{{ total_entradas - total_saidas }}</p>
-                            <p>unidades</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Valor Total (Entradas)</h5>
-                            <p class="card-text display-4">R$ {{ "%.2f"|format(valor_total_entradas) }}</p>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card bg-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Custo Total (Entradas)</h6>
+                                            <p class="card-text h4">R$ {{ "%.2f"|format(valor_total_entradas) }}</p>
+                                            <small>investimento</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Receita Total (Saídas)</h6>
+                                            <p class="card-text h4">R$ {{ "%.2f"|format(valor_total_saidas) }}</p>
+                                            <small>faturamento</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    {% if lucro_prejuizo >= 0 %}
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Lucro</h6>
+                                                <p class="card-text h4">R$ {{ "%.2f"|format(lucro_prejuizo) }}</p>
+                                                <small>resultado positivo</small>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="card bg-danger text-white">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">Prejuízo</h6>
+                                                <p class="card-text h4">R$ {{ "%.2f"|format(lucro_prejuizo|abs) }}</p>
+                                                <small>resultado negativo</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -142,6 +159,8 @@
                                 <th>Variação</th>
                                 <th>SKU</th>
                                 <th>Quantidade</th>
+                                <th>Preço Venda</th>
+                                <th>Total</th>
                                 <th>Cliente</th>
                                 <th>Motivo</th>
                             </tr>
@@ -154,6 +173,8 @@
                                     <td>{{ saida.variacao.nome }}</td>
                                     <td>{{ saida.variacao.sku }}</td>
                                     <td>{{ saida.quantidade }}</td>
+                                    <td>R$ {{ "%.2f"|format(saida.preco_venda) }}</td>
+                                    <td>R$ {{ "%.2f"|format(saida.valor_total) }}</td>
                                     <td>{{ saida.cliente.nome if saida.cliente else '-' }}</td>
                                     <td>{{ saida.motivo or '-' }}</td>
                                 </tr>

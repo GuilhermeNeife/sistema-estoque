@@ -9,7 +9,25 @@
         color: red;
         margin-left: 4px;
     }
+    
+    .select2-container {
+        width: 100% !important;
+    }
+    
+    .select2-selection {
+        height: auto !important;
+        min-height: 38px !important;
+    }
+    
+    .select2-selection__rendered {
+        line-height: 38px !important;
+    }
+    
+    .select2-selection__arrow {
+        height: 38px !important;
+    }
 </style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -34,7 +52,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.variacao_id.id }}" class="required-field">Produto/Variação</label>
-                            {{ form.variacao_id(class="form-control" + (" is-invalid" if form.variacao_id.errors else "")) }}
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+                                
+                                </div>
+                               
+                            </div>
+                            {{ form.variacao_id(class="form-control produto-select" + (" is-invalid" if form.variacao_id.errors else "")) }}
                             {% if form.variacao_id.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.variacao_id.errors %}
@@ -47,7 +71,12 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.fornecedor_id.id }}">Fornecedor</label>
-                            {{ form.fornecedor_id(class="form-control" + (" is-invalid" if form.fornecedor_id.errors else "")) }}
+                            <div class="input-group mb-2">
+                                <div class="input-group-prepend">
+
+                                </div>
+                            </div>
+                            {{ form.fornecedor_id(class="form-control fornecedor-select" + (" is-invalid" if form.fornecedor_id.errors else "")) }}
                             {% if form.fornecedor_id.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.fornecedor_id.errors %}
@@ -146,8 +175,89 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Inicializar Select2 para produtos
+        $('.produto-select').select2({
+            placeholder: 'Selecione um produto',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "Nenhum produto encontrado";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            }
+        });
+        
+        // Inicializar Select2 para fornecedores
+        $('.fornecedor-select').select2({
+            placeholder: 'Selecione um fornecedor',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "Nenhum fornecedor encontrado";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            }
+        });
+        
+        // Filtrar produtos ao digitar no campo de busca
+        $('#produto-busca').on('input', function() {
+            const busca = $(this).val().toLowerCase();
+            
+            // Filtrar opções do select
+            if (busca) {
+                // Abrir o dropdown se estiver fechado
+                if (!$('.produto-select').select2('isOpen')) {
+                    $('.produto-select').select2('open');
+                }
+                
+                // Aplicar filtro
+                setTimeout(function() {
+                    $('.select2-results__option').each(function() {
+                        const texto = $(this).text().toLowerCase();
+                        if (texto.includes(busca)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }, 100);
+            }
+        });
+        
+        // Filtrar fornecedores ao digitar no campo de busca
+        $('#fornecedor-busca').on('input', function() {
+            const busca = $(this).val().toLowerCase();
+            
+            // Filtrar opções do select
+            if (busca) {
+                // Abrir o dropdown se estiver fechado
+                if (!$('.fornecedor-select').select2('isOpen')) {
+                    $('.fornecedor-select').select2('open');
+                }
+                
+                // Aplicar filtro
+                setTimeout(function() {
+                    $('.select2-results__option').each(function() {
+                        const texto = $(this).text().toLowerCase();
+                        if (texto.includes(busca)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }, 100);
+            }
+        });
+        
         // Formatar preço de custo
         $('#entrada_estoque_form-preco_custo').on('input', function() {
             let value = $(this).val();
