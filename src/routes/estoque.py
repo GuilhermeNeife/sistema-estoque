@@ -11,7 +11,8 @@ from sqlalchemy import or_
 
 class EntradaEstoqueForm(FlaskForm):
     id = HiddenField('ID')
-    variacao_id = SelectField('Produto/Variação', coerce=int, validators=[DataRequired(message='Produto é obrigatório')])
+    produto_id = SelectField('Produto', coerce=int, validators=[DataRequired(message='Produto é obrigatório')])
+    variacao_id = SelectField('Variação', coerce=int, validators=[Optional()])
     fornecedor_id = SelectField('Fornecedor', coerce=int, validators=[Optional()])
     quantidade = IntegerField('Quantidade', validators=[DataRequired(message='Quantidade é obrigatória'), NumberRange(min=1, message='Quantidade deve ser maior que zero')])
     preco_custo = FloatField('Preço de Custo', validators=[DataRequired(message='Preço de custo é obrigatório'), NumberRange(min=0, message='Preço deve ser maior ou igual a zero')])
@@ -22,7 +23,8 @@ class EntradaEstoqueForm(FlaskForm):
 
 class SaidaEstoqueForm(FlaskForm):
     id = HiddenField('ID')
-    variacao_id = SelectField('Produto/Variação', coerce=int, validators=[DataRequired(message='Produto é obrigatório')])
+    produto_id = SelectField('Produto', coerce=int, validators=[DataRequired(message='Produto é obrigatório')])
+    variacao_id = SelectField('Variação', coerce=int, validators=[Optional()])
     cliente_id = SelectField('Cliente', coerce=int, validators=[Optional()])
     quantidade = IntegerField('Quantidade', validators=[DataRequired(message='Quantidade é obrigatória'), NumberRange(min=1, message='Quantidade deve ser maior que zero')])
     preco_venda = FloatField('Preço de Venda', validators=[DataRequired(message='Preço de venda é obrigatório'), NumberRange(min=0, message='Preço deve ser maior ou igual a zero')])
@@ -133,22 +135,40 @@ def nova_entrada():
     form = EntradaEstoqueForm()
     
     # Carregar opções para os campos select
-    variacoes = []
-    for produto in Produto.query.all():
-        for variacao in produto.variacoes:
-            variacoes.append((variacao.id, f"{produto.nome} - {variacao.nome} ({variacao.sku})"))
+    produtos = [(0, '-- Selecione --')]
+    for produto in Produto.query.order_by(Produto.nome).all():
+        produtos.append((produto.id, produto.nome))
     
-    form.variacao_id.choices = [(0, '-- Selecione --')] + variacoes
+    form.produto_id.choices = produtos
+    form.variacao_id.choices = [(0, '-- Selecione --')]
     form.fornecedor_id.choices = [(0, '-- Selecione --')] + [(f.id, f.nome) for f in ClienteFornecedor.query.filter_by(eh_fornecedor=True).all()]
     
     if form.validate_on_submit():
-        variacao = ProdutoVariacao.query.get(form.variacao_id.data)
-        if not variacao:
-            flash('Variação de produto não encontrada!', 'danger')
+        produto_id = form.produto_id.data
+        variacao_id = form.variacao_id.data
+        
+        # Obter o produto
+        produto = Produto.query.get(produto_id)
+        if not produto:
+            flash('Produto não encontrado!', 'danger')
             return redirect(url_for('estoque.nova_entrada'))
         
+        # Verificar se é um produto sem variação
+        if variacao_id == 0:
+            # Verificar se já existe uma variação padrão
+            variacao = produto.get_variacao_padrao()
+            if not variacao:
+                # Criar variação padrão
+                variacao = produto.criar_variacao_padrao(preco_venda=0)
+            variacao_id = variacao.id
+        else:
+            variacao = ProdutoVariacao.query.get(variacao_id)
+            if not variacao:
+                flash('Variação de produto não encontrada!', 'danger')
+                return redirect(url_for('estoque.nova_entrada'))
+        
         entrada = EntradaEstoque(
-            variacao_id=form.variacao_id.data,
+            variacao_id=variacao_id,
             fornecedor_id=form.fornecedor_id.data if form.fornecedor_id.data != 0 else None,
             quantidade=form.quantidade.data,
             preco_custo=form.preco_custo.data,
@@ -227,20 +247,39 @@ def nova_saida():
     form = SaidaEstoqueForm()
     
     # Carregar opções para os campos select
-    variacoes = []
-    for produto in Produto.query.all():
-        for variacao in produto.variacoes:
-            if variacao.quantidade_atual > 0:  # Só mostrar variações com estoque
-                variacoes.append((variacao.id, f"{produto.nome} - {variacao.nome} ({variacao.sku}) - Estoque: {variacao.quantidade_atual}"))
+    produtos = [(0, '-- Selecione --')]
+    for produto in Produto.query.order_by(Produto.nome).all():
+        # Verificar se o produto tem estoque (em qualquer variação)
+        if produto.estoque_total() > 0:
+            produtos.append((produto.id, produto.nome))
     
-    form.variacao_id.choices = [(0, '-- Selecione --')] + variacoes
+    form.produto_id.choices = produtos
+    form.variacao_id.choices = [(0, '-- Selecione --')]
     form.cliente_id.choices = [(0, '-- Selecione --')] + [(c.id, c.nome) for c in ClienteFornecedor.query.filter_by(eh_cliente=True).all()]
     
     if form.validate_on_submit():
-        variacao = ProdutoVariacao.query.get(form.variacao_id.data)
-        if not variacao:
-            flash('Variação de produto não encontrada!', 'danger')
+        produto_id = form.produto_id.data
+        variacao_id = form.variacao_id.data
+        
+        # Obter o produto
+        produto = Produto.query.get(produto_id)
+        if not produto:
+            flash('Produto não encontrado!', 'danger')
             return redirect(url_for('estoque.nova_saida'))
+        
+        # Verificar se é um produto sem variação
+        if variacao_id == 0:
+            # Verificar se já existe uma variação padrão
+            variacao = produto.get_variacao_padrao()
+            if not variacao:
+                flash('Produto sem variação padrão!', 'danger')
+                return redirect(url_for('estoque.nova_saida'))
+            variacao_id = variacao.id
+        else:
+            variacao = ProdutoVariacao.query.get(variacao_id)
+            if not variacao:
+                flash('Variação de produto não encontrada!', 'danger')
+                return redirect(url_for('estoque.nova_saida'))
         
         # Verificar se há estoque suficiente
         if variacao.quantidade_atual < form.quantidade.data:
@@ -251,7 +290,7 @@ def nova_saida():
         valor_total = form.quantidade.data * form.preco_venda.data
         
         saida = SaidaEstoque(
-            variacao_id=form.variacao_id.data,
+            variacao_id=variacao_id,
             cliente_id=form.cliente_id.data if form.cliente_id.data != 0 else None,
             quantidade=form.quantidade.data,
             preco_venda=form.preco_venda.data,
@@ -338,46 +377,94 @@ def editar_saida(id):
 @estoque_bp.route('/entradas/<int:id>/excluir', methods=['POST'])
 def excluir_entrada(id):
     entrada = EntradaEstoque.query.get_or_404(id)
-    variacao = entrada.variacao
     
-    # Verificar se há estoque suficiente para estornar
-    if variacao.quantidade_atual < entrada.quantidade:
-        flash('Não é possível excluir esta entrada. Estoque atual insuficiente para estorno.', 'danger')
-        return redirect(url_for('estoque.entradas'))
+    try:
+        # Verificar se há estoque suficiente para remover
+        if entrada.variacao.quantidade_atual < entrada.quantidade:
+            flash(f'Não é possível excluir esta entrada pois não há estoque suficiente. Disponível: {entrada.variacao.quantidade_atual}', 'danger')
+            return redirect(url_for('estoque.entradas'))
+        
+        # Atualizar o estoque da variação
+        entrada.variacao.quantidade_atual -= entrada.quantidade
+        
+        db.session.delete(entrada)
+        db.session.commit()
+        
+        flash('Entrada de estoque excluída com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao excluir entrada: {str(e)}', 'danger')
     
-    # Atualizar estoque da variação
-    variacao.quantidade_atual -= entrada.quantidade
-    
-    db.session.delete(entrada)
-    db.session.commit()
-    
-    flash('Entrada de estoque excluída com sucesso!', 'success')
     return redirect(url_for('estoque.entradas'))
 
 @estoque_bp.route('/saidas/<int:id>/excluir', methods=['POST'])
 def excluir_saida(id):
     saida = SaidaEstoque.query.get_or_404(id)
-    variacao = saida.variacao
     
-    # Atualizar estoque da variação
-    variacao.quantidade_atual += saida.quantidade
+    try:
+        # Atualizar o estoque da variação
+        saida.variacao.quantidade_atual += saida.quantidade
+        
+        db.session.delete(saida)
+        db.session.commit()
+        
+        flash('Saída de estoque excluída com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao excluir saída: {str(e)}', 'danger')
     
-    db.session.delete(saida)
-    db.session.commit()
-    
-    flash('Saída de estoque excluída com sucesso!', 'success')
     return redirect(url_for('estoque.saidas'))
 
-@estoque_bp.route('/api/variacao/<int:id>/info')
+@estoque_bp.route('/variacao/<int:id>/info')
 def get_variacao_info(id):
     variacao = ProdutoVariacao.query.get_or_404(id)
-    produto = variacao.produto
-    
     return jsonify({
-        'id': variacao.id,
-        'sku': variacao.sku,
-        'nome': variacao.nome,
-        'produto_nome': produto.nome,
         'quantidade_atual': variacao.quantidade_atual,
         'preco_venda': variacao.preco_venda
     })
+
+@estoque_bp.route('/produto/<int:id>/variacoes')
+def get_variacoes_produto(id):
+    produto = Produto.query.get_or_404(id)
+    
+    # Se o produto não tem variações, criar uma variação padrão
+    if len(produto.variacoes) == 0:
+        variacao = produto.criar_variacao_padrao()
+        return jsonify([{
+            'id': variacao.id,
+            'nome': produto.nome,
+            'sku': variacao.sku,
+            'quantidade_atual': variacao.quantidade_atual,
+            'preco_venda': variacao.preco_venda,
+            'eh_padrao': True
+        }])
+    
+    # Verificar se alguma variação é padrão
+    tem_padrao = False
+    for variacao in produto.variacoes:
+        if variacao.eh_padrao:
+            tem_padrao = True
+            break
+    
+    # Se não tem variação padrão e tem apenas uma variação, marcar como padrão
+    if not tem_padrao and len(produto.variacoes) == 1:
+        produto.variacoes[0].eh_padrao = True
+        db.session.commit()
+    
+    # Retornar todas as variações
+    variacoes = []
+    for variacao in produto.variacoes:
+        # Para saída, só mostrar variações com estoque
+        if request.args.get('tipo') == 'saida' and variacao.quantidade_atual <= 0:
+            continue
+            
+        variacoes.append({
+            'id': variacao.id,
+            'nome': variacao.nome,
+            'sku': variacao.sku,
+            'quantidade_atual': variacao.quantidade_atual,
+            'preco_venda': variacao.preco_venda,
+            'eh_padrao': variacao.eh_padrao
+        })
+    
+    return jsonify(variacoes)

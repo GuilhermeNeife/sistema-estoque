@@ -51,14 +51,27 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="{{ form.variacao_id.id }}" class="required-field">Produto/Variação</label>
+                            <label for="{{ form.produto_id.id }}" class="required-field">Produto</label>
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
-                                
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
-                               
+                                <input type="text" id="produto-busca" class="form-control" placeholder="Buscar produto por nome ou SKU...">
                             </div>
-                            {{ form.variacao_id(class="form-control produto-select" + (" is-invalid" if form.variacao_id.errors else "")) }}
+                            {{ form.produto_id(class="form-control produto-select" + (" is-invalid" if form.produto_id.errors else "")) }}
+                            {% if form.produto_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.produto_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="variacao-container">
+                        <div class="form-group">
+                            <label for="{{ form.variacao_id.id }}">Variação</label>
+                            {{ form.variacao_id(class="form-control variacao-select" + (" is-invalid" if form.variacao_id.errors else "")) }}
                             {% if form.variacao_id.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.variacao_id.errors %}
@@ -68,13 +81,17 @@
                             {% endif %}
                         </div>
                     </div>
+                </div>
+                
+                <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.fornecedor_id.id }}">Fornecedor</label>
                             <div class="input-group mb-2">
                                 <div class="input-group-prepend">
-
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
                                 </div>
+                                <input type="text" id="fornecedor-busca" class="form-control" placeholder="Buscar fornecedor...">
                             </div>
                             {{ form.fornecedor_id(class="form-control fornecedor-select" + (" is-invalid" if form.fornecedor_id.errors else "")) }}
                             {% if form.fornecedor_id.errors %}
@@ -86,10 +103,7 @@
                             {% endif %}
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.quantidade.id }}" class="required-field">Quantidade</label>
                             {{ form.quantidade(class="form-control" + (" is-invalid" if form.quantidade.errors else ""), min="1") }}
@@ -102,6 +116,9 @@
                             {% endif %}
                         </div>
                     </div>
+                </div>
+                
+                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="{{ form.preco_custo.id }}" class="required-field">Preço de Custo</label>
@@ -133,10 +150,7 @@
                             {% endif %}
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="{{ form.nota_fiscal.id }}">Nota Fiscal</label>
                             {{ form.nota_fiscal(class="form-control" + (" is-invalid" if form.nota_fiscal.errors else "")) }}
@@ -149,19 +163,18 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.observacao.id }}">Observação</label>
-                            {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
-                            {% if form.observacao.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in form.observacao.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.observacao.id }}">Observação</label>
+                    {{ form.observacao(class="form-control" + (" is-invalid" if form.observacao.errors else ""), rows=3) }}
+                    {% if form.observacao.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.observacao.errors %}
+                                {{ error }}
+                            {% endfor %}
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
                 
                 <div class="form-group mt-4">
@@ -186,6 +199,21 @@
             language: {
                 noResults: function() {
                     return "Nenhum produto encontrado";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            }
+        });
+        
+        // Inicializar Select2 para variações
+        $('.variacao-select').select2({
+            placeholder: 'Selecione uma variação',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "Nenhuma variação encontrada";
                 },
                 searching: function() {
                     return "Buscando...";
@@ -255,6 +283,58 @@
                         }
                     });
                 }, 100);
+            }
+        });
+        
+        // Carregar variações ao selecionar produto
+        $('#entrada_estoque_form-produto_id').change(function() {
+            const produtoId = $(this).val();
+            
+            if (produtoId && produtoId != '0') {
+                // Limpar e desabilitar o select de variações enquanto carrega
+                $('#entrada_estoque_form-variacao_id').empty().prop('disabled', true);
+                
+                // Buscar variações do produto
+                $.ajax({
+                    url: '/estoque/produto/' + produtoId + '/variacoes',
+                    method: 'GET',
+                    success: function(variacoes) {
+                        // Se não houver variações ou apenas uma variação padrão, ocultar o campo
+                        if (variacoes.length === 0 || (variacoes.length === 1 && variacoes[0].eh_padrao)) {
+                            $('#variacao-container').hide();
+                            
+                            // Se houver uma variação padrão, selecionar automaticamente
+                            if (variacoes.length === 1) {
+                                $('#entrada_estoque_form-variacao_id').append(new Option(variacoes[0].nome, variacoes[0].id, true, true));
+                            } else {
+                                $('#entrada_estoque_form-variacao_id').append(new Option('-- Selecione --', 0, true, true));
+                            }
+                        } else {
+                            // Mostrar o campo de variação e adicionar opções
+                            $('#variacao-container').show();
+                            
+                            // Adicionar opção padrão
+                            $('#entrada_estoque_form-variacao_id').append(new Option('-- Selecione --', 0, true, true));
+                            
+                            // Adicionar variações
+                            variacoes.forEach(function(variacao) {
+                                const texto = variacao.nome + ' (' + variacao.sku + ')';
+                                $('#entrada_estoque_form-variacao_id').append(new Option(texto, variacao.id));
+                            });
+                        }
+                        
+                        // Habilitar o select e atualizar o Select2
+                        $('#entrada_estoque_form-variacao_id').prop('disabled', false).trigger('change');
+                    },
+                    error: function() {
+                        alert('Erro ao carregar variações do produto');
+                        $('#entrada_estoque_form-variacao_id').prop('disabled', false);
+                    }
+                });
+            } else {
+                // Limpar e desabilitar o select de variações
+                $('#entrada_estoque_form-variacao_id').empty().append(new Option('-- Selecione --', 0, true, true)).prop('disabled', true).trigger('change');
+                $('#variacao-container').show();
             }
         });
         
