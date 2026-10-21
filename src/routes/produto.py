@@ -14,7 +14,8 @@ produto_bp = Blueprint("produto", __name__, url_prefix="/produtos")
 @produto_bp.route("/")
 def listar():
     produtos = Produto.query.all()
-    return render_template("produto/listar.html", produtos=produtos, titulo="Produtos")
+    categorias = Categoria.query.order_by(Categoria.nome).all()
+    return render_template("produto/listar.html", produtos=produtos, categorias=categorias, titulo="Produtos")
 
 # --- Formulário de Produto Base ---
 class ProdutoForm(FlaskForm):

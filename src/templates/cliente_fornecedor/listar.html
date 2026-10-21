@@ -17,6 +17,31 @@
             <h5 class="mb-0">Clientes</h5>
         </div>
         <div class="card-body">
+            <!-- Filtros para Clientes -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filtro-cliente-nome">Nome</label>
+                        <input type="text" class="form-control" id="filtro-cliente-nome" placeholder="Filtrar por nome...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-cliente-cpf-cnpj">CPF/CNPJ</label>
+                        <input type="text" class="form-control" id="filtro-cliente-cpf-cnpj" placeholder="Filtrar por CPF/CNPJ...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-cliente-email">E-mail</label>
+                        <input type="text" class="form-control" id="filtro-cliente-email" placeholder="Filtrar por e-mail...">
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="limpar-filtros-cliente" class="btn btn-secondary btn-block">Limpar</button>
+                </div>
+            </div>
+            
             {% if clientes %}
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered">
@@ -65,6 +90,31 @@
             <h5 class="mb-0">Fornecedores</h5>
         </div>
         <div class="card-body">
+            <!-- Filtros para Fornecedores -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-fornecedor-nome">Nome</label>
+                        <input type="text" class="form-control" id="filtro-fornecedor-nome" placeholder="Filtrar por nome...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-fornecedor-razao">Razão Social</label>
+                        <input type="text" class="form-control" id="filtro-fornecedor-razao" placeholder="Filtrar por razão social...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-fornecedor-cpf-cnpj">CNPJ/CPF</label>
+                        <input type="text" class="form-control" id="filtro-fornecedor-cpf-cnpj" placeholder="Filtrar por CNPJ/CPF...">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button id="limpar-filtros-fornecedor" class="btn btn-secondary btn-block">Limpar</button>
+                </div>
+            </div>
+            
             {% if fornecedores %}
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered">
@@ -151,6 +201,96 @@
             
             // Exibir modal
             $('#modalConfirmacao').modal('show');
+        });
+
+        // Filtro em tempo real para Clientes
+        function aplicarFiltrosClientes() {
+            const filtroNome = $('#filtro-cliente-nome').val().toLowerCase();
+            const filtroCpfCnpj = $('#filtro-cliente-cpf-cnpj').val().toLowerCase();
+            const filtroEmail = $('#filtro-cliente-email').val().toLowerCase();
+            
+            let encontrados = 0;
+            
+            // Seleciona apenas a tabela de clientes (primeira tabela)
+            $('table:eq(0) tbody tr').each(function() {
+                const nome = $(this).find('td:nth-child(1)').text().toLowerCase();
+                const cpfCnpj = $(this).find('td:nth-child(2)').text().toLowerCase();
+                const email = $(this).find('td:nth-child(3)').text().toLowerCase();
+                
+                const matchNome = nome.includes(filtroNome);
+                const matchCpfCnpj = cpfCnpj.includes(filtroCpfCnpj);
+                const matchEmail = email.includes(filtroEmail);
+                
+                if (matchNome && matchCpfCnpj && matchEmail) {
+                    $(this).show();
+                    encontrados++;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Mostrar mensagem se nenhum resultado for encontrado
+            if (encontrados === 0 && ($('#filtro-cliente-nome').val() || $('#filtro-cliente-cpf-cnpj').val() || $('#filtro-cliente-email').val())) {
+                if ($('.sem-resultados-cliente').length === 0) {
+                    $('table:eq(0)').after('<div class="alert alert-info sem-resultados-cliente mt-3">Nenhum cliente encontrado com os filtros aplicados.</div>');
+                }
+            } else {
+                $('.sem-resultados-cliente').remove();
+            }
+        }
+        
+        // Filtro em tempo real para Fornecedores
+        function aplicarFiltrosFornecedores() {
+            const filtroNome = $('#filtro-fornecedor-nome').val().toLowerCase();
+            const filtroRazao = $('#filtro-fornecedor-razao').val().toLowerCase();
+            const filtroCpfCnpj = $('#filtro-fornecedor-cpf-cnpj').val().toLowerCase();
+            
+            let encontrados = 0;
+            
+            // Seleciona apenas a tabela de fornecedores (segunda tabela)
+            $('table:eq(1) tbody tr').each(function() {
+                const nome = $(this).find('td:nth-child(1)').text().toLowerCase();
+                const razao = $(this).find('td:nth-child(2)').text().toLowerCase();
+                const cpfCnpj = $(this).find('td:nth-child(3)').text().toLowerCase();
+                
+                const matchNome = nome.includes(filtroNome);
+                const matchRazao = razao.includes(filtroRazao);
+                const matchCpfCnpj = cpfCnpj.includes(filtroCpfCnpj);
+                
+                if (matchNome && matchRazao && matchCpfCnpj) {
+                    $(this).show();
+                    encontrados++;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Mostrar mensagem se nenhum resultado for encontrado
+            if (encontrados === 0 && ($('#filtro-fornecedor-nome').val() || $('#filtro-fornecedor-razao').val() || $('#filtro-fornecedor-cpf-cnpj').val())) {
+                if ($('.sem-resultados-fornecedor').length === 0) {
+                    $('table:eq(1)').after('<div class="alert alert-info sem-resultados-fornecedor mt-3">Nenhum fornecedor encontrado com os filtros aplicados.</div>');
+                }
+            } else {
+                $('.sem-resultados-fornecedor').remove();
+            }
+        }
+        
+        // Eventos para os filtros de clientes
+        $('#filtro-cliente-nome, #filtro-cliente-cpf-cnpj, #filtro-cliente-email').on('keyup', aplicarFiltrosClientes);
+        
+        // Eventos para os filtros de fornecedores
+        $('#filtro-fornecedor-nome, #filtro-fornecedor-razao, #filtro-fornecedor-cpf-cnpj').on('keyup', aplicarFiltrosFornecedores);
+        
+        // Limpar filtros de clientes
+        $('#limpar-filtros-cliente').click(function() {
+            $('#filtro-cliente-nome, #filtro-cliente-cpf-cnpj, #filtro-cliente-email').val('');
+            aplicarFiltrosClientes();
+        });
+        
+        // Limpar filtros de fornecedores
+        $('#limpar-filtros-fornecedor').click(function() {
+            $('#filtro-fornecedor-nome, #filtro-fornecedor-razao, #filtro-fornecedor-cpf-cnpj').val('');
+            aplicarFiltrosFornecedores();
         });
     });
 </script>

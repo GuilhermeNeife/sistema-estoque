@@ -17,6 +17,36 @@
             <h5 class="mb-0">Lista de Produtos</h5>
         </div>
         <div class="card-body">
+            <!-- Filtros -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filtro-nome">Nome do Produto</label>
+                        <input type="text" class="form-control" id="filtro-nome" placeholder="Filtrar por nome...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-sku">SKU</label>
+                        <input type="text" class="form-control" id="filtro-sku" placeholder="Filtrar por SKU...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="filtro-categoria">Categoria</label>
+                        <select class="form-control" id="filtro-categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.nome }}">{{ categoria.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="limpar-filtros" class="btn btn-secondary btn-block">Limpar Filtros</button>
+                </div>
+            </div>
+            
             {% if produtos %}
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered">
@@ -101,6 +131,52 @@
             const id = $(this).data('id');
             $('#formExcluir').attr('action', '{{ url_for("produto.excluir", id=0) }}'.replace('0', id));
             $('#modalConfirmacao').modal('show');
+        });
+
+        // Filtro em tempo real
+        function aplicarFiltros() {
+            const filtroNome = $('#filtro-nome').val().toLowerCase();
+            const filtroSku = $('#filtro-sku').val().toLowerCase();
+            const filtroCategoria = $('#filtro-categoria').val().toLowerCase();
+            
+            let encontrados = 0;
+            
+            $('table tbody tr').each(function() {
+                const nome = $(this).find('td:nth-child(2)').text().toLowerCase();
+                const sku = $(this).find('td:nth-child(1)').text().toLowerCase();
+                const categoria = $(this).find('td:nth-child(3)').text().toLowerCase();
+                
+                const matchNome = nome.includes(filtroNome);
+                const matchSku = sku.includes(filtroSku);
+                const matchCategoria = filtroCategoria === '' || categoria.includes(filtroCategoria);
+                
+                if (matchNome && matchSku && matchCategoria) {
+                    $(this).show();
+                    encontrados++;
+                } else {
+                    $(this).hide();
+                }
+            });
+            
+            // Mostrar mensagem se nenhum resultado for encontrado
+            if (encontrados === 0 && ($('#filtro-nome').val() || $('#filtro-sku').val() || $('#filtro-categoria').val())) {
+                if ($('.sem-resultados').length === 0) {
+                    $('table').after('<div class="alert alert-info sem-resultados mt-3">Nenhum produto encontrado com os filtros aplicados.</div>');
+                }
+            } else {
+                $('.sem-resultados').remove();
+            }
+        }
+        
+        // Eventos para os filtros
+        $('#filtro-nome, #filtro-sku').on('keyup', aplicarFiltros);
+        $('#filtro-categoria').on('change', aplicarFiltros);
+        
+        // Limpar filtros
+        $('#limpar-filtros').click(function() {
+            $('#filtro-nome, #filtro-sku').val('');
+            $('#filtro-categoria').val('');
+            aplicarFiltros();
         });
     });
 </script>
